@@ -1,4 +1,6 @@
 defmodule CaseoWeb.UserAuth do
+  @moduledoc "Manages web authentication and user sessions."
+
   use CaseoWeb, :verified_routes
 
   import Plug.Conn

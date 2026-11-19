@@ -1,0 +1,93 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Quality checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18.7-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: caseo_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d caseo_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
+      - name: Cache Dialyzer PLTs
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.mix/dialyxir_*.plt*
+            _build/test/dialyxir_*.plt*
+          key: plt-ubuntu24-${{ runner.arch }}-${{ hashFiles('.tool-versions', 'mix.lock', 'mix.exs') }}
+      - name: Fetch test dependencies
+        run: MIX_ENV=test mix deps.get --check-locked
+      - name: Fetch frontend dependencies
+        run: npm ci --include=dev
+        working-directory: assets
+      - name: Check formatting, compilation, Credo, tests and Dialyzer
+        run: mix precommit
+
+  release:
+    name: Build production release
+    needs: checks
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MIX_ENV: prod
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - name: Fetch production dependencies
+        run: mix deps.get --only prod --check-locked
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
+      - name: Build assets and release
+        run: |
+          mix compile --warnings-as-errors
+          mix assets.deploy
+          mix release
+          tar -czf caseo-linux-x86_64.tar.gz -C _build/prod/rel/caseo .
+      - name: Upload production release
+        uses: actions/upload-artifact@v4
+        with:
+          name: caseo-linux-x86_64-${{ github.sha }}
+          path: caseo-linux-x86_64.tar.gz
+          if-no-files-found: error

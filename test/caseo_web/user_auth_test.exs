@@ -1,10 +1,10 @@
 defmodule CaseoWeb.UserAuthTest do
   use CaseoWeb.ConnCase, async: true
 
-  alias Phoenix.LiveView
   alias Caseo.Accounts
-  alias Caseo.Accounts.Scope
+  alias Caseo.Accounts.{Scope, SecondFactor}
   alias CaseoWeb.UserAuth
+  alias Phoenix.LiveView
 
   import Caseo.AccountsFixtures
 
@@ -400,7 +400,7 @@ defmodule CaseoWeb.UserAuthTest do
   end
 
   defp finish_login(conn, user, params \\ %{}) do
-    {:session, token} = Caseo.Accounts.SecondFactor.start_login(user, :magic_link)
+    {:session, token} = SecondFactor.start_login(user, :magic_link)
     UserAuth.finish_login(conn, user, token, params)
   end
 end

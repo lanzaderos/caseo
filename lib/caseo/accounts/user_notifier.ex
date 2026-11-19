@@ -1,8 +1,10 @@
 defmodule Caseo.Accounts.UserNotifier do
+  @moduledoc "Builds and sends account emails."
+
   import Swoosh.Email
 
-  alias Caseo.Mailer
   alias Caseo.Accounts.User
+  alias Caseo.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

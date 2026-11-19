@@ -6,7 +6,7 @@ defmodule Caseo.Accounts do
   import Ecto.Query, warn: false
   alias Caseo.Repo
 
-  alias Caseo.Accounts.{User, UserToken, UserNotifier}
+  alias Caseo.Accounts.{User, UserNotifier, UserToken}
 
   ## Database getters
 

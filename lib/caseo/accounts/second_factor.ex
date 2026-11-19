@@ -33,24 +33,28 @@ defmodule Caseo.Accounts.SecondFactor do
         %User{email: email, hashed_password: hash, confirmed_at: confirmed_at} = user
         when email == verified_user.email and hash == verified_user.hashed_password and
                not is_nil(confirmed_at) ->
-          if required?(user, method) do
-            Repo.delete_all(
-              from t in UserToken,
-                where: t.user_id == ^user.id and t.context == @challenge_context,
-                where: t.inserted_at <= ago(^@challenge_minutes, "minute")
-            )
-
-            {challenge, token} = UserToken.build_email_token(user, @challenge_context)
-            Repo.insert!(token)
-            {:challenge, challenge}
-          else
-            {:session, Accounts.generate_user_session_token(user)}
-          end
+          issue_login(user, method)
 
         _ ->
           {:error, :invalid}
       end
     end)
+  end
+
+  defp issue_login(user, method) do
+    if required?(user, method) do
+      Repo.delete_all(
+        from t in UserToken,
+          where: t.user_id == ^user.id and t.context == @challenge_context,
+          where: t.inserted_at <= ago(^@challenge_minutes, "minute")
+      )
+
+      {challenge, token} = UserToken.build_email_token(user, @challenge_context)
+      Repo.insert!(token)
+      {:challenge, challenge}
+    else
+      {:session, Accounts.generate_user_session_token(user)}
+    end
   end
 
   def pending?(challenge), do: challenge && Repo.exists?(challenge_query(challenge))
@@ -97,24 +101,28 @@ defmodule Caseo.Accounts.SecondFactor do
              Phoenix.Token.decrypt(Endpoint, "totp setup", ticket, max_age: @setup_seconds),
            {:ok, user} <- consume_attempt(user),
            step when is_integer(step) <- TOTP.matching_step(secret, code, nil, now()) do
-        codes = Enum.map(1..10, fn _ -> Base.encode16(:crypto.strong_rand_bytes(12)) end)
-
-        update!(
-          user,
-          Map.merge(reset_attempts(), %{
-            totp_secret: Phoenix.Token.encrypt(Endpoint, "totp secret", {user.id, secret}),
-            totp_last_step: step,
-            recovery_code_hashes: Enum.map(codes, &hash/1)
-          })
-        )
-
-        {:ok, codes, revoke_tokens(user)}
+        enable_factor(user, secret, step)
       else
         {:error, :reauthenticate} = error -> error
         {:error, :rate_limited} = error -> error
         _ -> {:error, :invalid}
       end
     end)
+  end
+
+  defp enable_factor(user, secret, step) do
+    codes = Enum.map(1..10, fn _ -> Base.encode16(:crypto.strong_rand_bytes(12)) end)
+
+    update!(
+      user,
+      Map.merge(reset_attempts(), %{
+        totp_secret: Phoenix.Token.encrypt(Endpoint, "totp secret", {user.id, secret}),
+        totp_last_step: step,
+        recovery_code_hashes: Enum.map(codes, &hash/1)
+      })
+    )
+
+    {:ok, codes, revoke_tokens(user)}
   end
 
   def disable(session) do
