@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Caseo" suffix=" · Phoenix Framework">
+    <.live_title default="Caseo" suffix=" · Caseo">
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
@@ -31,6 +31,57 @@
     </script>
   </head>
   <body>
+    <header id="site-header" class="border-b border-base-300 bg-base-100">
+      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
+        <.link
+          href={~p"/"}
+          class="rounded-sm text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
+          Caseo
+        </.link>
+        <nav
+          id="account-navigation"
+          aria-label={gettext("Account")}
+          class="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm"
+        >
+          <%= if @current_scope do %>
+            <span
+              class="hidden max-w-56 truncate text-base-content/70 md:inline"
+              title={@current_scope.user.email}
+            >
+              {@current_scope.user.email}
+            </span>
+            <.link
+              href={~p"/users/settings"}
+              class="rounded-sm py-2 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {gettext("Settings")}
+            </.link>
+            <.link
+              href={~p"/users/log-out"}
+              method="delete"
+              class="rounded-sm py-2 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {gettext("Log out")}
+            </.link>
+          <% else %>
+            <.link
+              href={~p"/users/register"}
+              class="rounded-sm py-2 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {gettext("Register")}
+            </.link>
+            <.link
+              href={~p"/users/log-in"}
+              class="rounded-sm py-2 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {gettext("Log in")}
+            </.link>
+          <% end %>
+          <.theme_toggle />
+        </nav>
+      </div>
+    </header>
     {@inner_content}
   </body>
 </html>

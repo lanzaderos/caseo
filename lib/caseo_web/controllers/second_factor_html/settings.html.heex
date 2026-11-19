@@ -1,0 +1,70 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section class="mx-auto max-w-md space-y-6">
+    <.header>Two-factor authentication</.header>
+    <%= if @setup do %>
+      <% {key, ticket} = @setup %>
+      <script :type={Phoenix.LiveView.ColocatedJS}>
+        import QRCode from "qrcode"
+
+        const canvas = document.querySelector("#totp-qr-code")
+
+        if (canvas) {
+          const setup = canvas.closest("[data-totp-uri]")
+
+          QRCode.toCanvas(canvas, setup.dataset.totpUri, {width: 224}).then(() => {
+            setup.hidden = false
+          }).catch(() => {
+            // The setup key remains available for manual enrollment.
+          })
+        }
+      </script>
+      <div data-totp-uri={totp_uri(@current_scope.user.email, key)} hidden>
+        <p class="mb-3">Scan this QR code with your authenticator app.</p>
+        <canvas
+          id="totp-qr-code"
+          class="rounded-lg bg-white"
+          role="img"
+          aria-label="QR code for the Caseo authenticator setup"
+        />
+      </div>
+      <p>
+        For manual setup, add a time-based account named Caseo and use this setup key.
+        Enter the six-digit code from your authenticator app to finish.
+      </p>
+      <code id="totp-setup-key" class="block break-all rounded-lg bg-base-200 p-4 font-mono">
+        {key}
+      </code>
+      <.form
+        for={to_form(%{"setup_ticket" => ticket})}
+        id="enable-totp"
+        action={~p"/users/settings/second-factor"}
+      >
+        <input type="hidden" name="setup_ticket" value={ticket} />
+        <.input
+          id="totp-activation-code"
+          name="factor_code"
+          value=""
+          label="Authenticator code"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          pattern="[0-9]{6}"
+          required
+        />
+        <.button variant="primary">Enable two-factor authentication</.button>
+      </.form>
+    <% else %>
+      <p>
+        Two-factor authentication is active. Turning it off also invalidates your recovery codes and signs you out on all devices.
+      </p>
+      <.form
+        for={to_form(%{})}
+        id="disable-totp"
+        action={~p"/users/settings/second-factor"}
+        method="delete"
+      >
+        <.button>Disable two-factor authentication</.button>
+      </.form>
+    <% end %>
+    <.link href={~p"/users/settings"} class="link">Back to account settings</.link>
+  </section>
+</Layouts.app>
