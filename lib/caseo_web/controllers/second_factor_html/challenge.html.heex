@@ -1,0 +1,23 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section class="mx-auto max-w-md space-y-6">
+    <.header>
+      Verify your sign-in
+      <:subtitle>
+        Enter a code from your authenticator app or one of your recovery codes.
+      </:subtitle>
+    </.header>
+    <.form for={to_form(%{})} id="second-factor-challenge" action={~p"/users/second-factor"}>
+      <.input
+        id="second-factor-code"
+        name="factor_code"
+        value=""
+        label="Authenticator or recovery code"
+        autocomplete="one-time-code"
+        maxlength="24"
+        required
+      />
+      <.button variant="primary">Verify</.button>
+    </.form>
+    <.link href={~p"/users/log-out"} method="delete" class="link">Cancel sign-in</.link>
+  </section>
+</Layouts.app>

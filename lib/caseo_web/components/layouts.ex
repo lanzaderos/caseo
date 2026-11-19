@@ -35,33 +35,6 @@ defmodule CaseoWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </header>
-
     <main class="px-4 py-20 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-2xl space-y-4">
         {render_slot(@inner_block)}
@@ -129,6 +102,8 @@ defmodule CaseoWeb.Layouts do
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="system"
+        type="button"
+        aria-label={gettext("System theme")}
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
@@ -137,6 +112,8 @@ defmodule CaseoWeb.Layouts do
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="light"
+        type="button"
+        aria-label={gettext("Light theme")}
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
@@ -145,6 +122,8 @@ defmodule CaseoWeb.Layouts do
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
         data-phx-theme="dark"
+        type="button"
+        aria-label={gettext("Dark theme")}
       >
         <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>

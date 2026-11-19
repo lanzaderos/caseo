@@ -7,6 +7,21 @@
 # General application configuration
 import Config
 
+config :phoenix, :filter_parameters, ["password", "token", "factor_code", "setup_ticket"]
+
+config :caseo, :scopes,
+  user: [
+    default: true,
+    module: Caseo.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: Caseo.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :caseo,
   ecto_repos: [Caseo.Repo],
   generators: [timestamp_type: :utc_datetime]
@@ -38,7 +53,13 @@ config :esbuild,
     args:
       ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+    env: %{
+      "NODE_PATH" => [
+        Path.expand("../deps", __DIR__),
+        Path.expand("../assets/node_modules", __DIR__),
+        Mix.Project.build_path()
+      ]
+    }
   ]
 
 # Configure tailwind (the version is required)
