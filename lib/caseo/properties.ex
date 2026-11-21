@@ -21,6 +21,7 @@ defmodule Caseo.Properties do
     |> with_status(status)
     |> order_by([p], desc: p.id)
     |> Repo.all()
+    |> Repo.preload(:rooms)
   end
 
   @doc "Fetches an owned property, including archived properties."
@@ -28,7 +29,7 @@ defmodule Caseo.Properties do
   def fetch_property(scope, id) do
     with {:ok, id} <- cast_id(id),
          %Property{} = property <- Repo.get(owned_properties(scope), id) do
-      {:ok, property}
+      {:ok, Repo.preload(property, :rooms)}
     else
       _ -> {:error, :not_found}
     end
@@ -50,8 +51,21 @@ defmodule Caseo.Properties do
   @spec update_property(Scope.t(), term(), map()) ::
           {:ok, Property.t()} | {:error, :not_found | Ecto.Changeset.t()}
   def update_property(scope, id, attrs) do
-    with {:ok, property} <- fetch_property(scope, id) do
-      property |> change_property(attrs) |> Repo.update()
+    case cast_id(id) do
+      {:ok, id} -> Repo.transact(fn -> update_owned_property(scope, id, attrs) end)
+      {:error, :not_found} -> {:error, :not_found}
+    end
+  end
+
+  defp update_owned_property(scope, id, attrs) do
+    query = scope |> owned_properties() |> lock("FOR UPDATE")
+
+    case Repo.get(query, id) do
+      %Property{} = property ->
+        property |> Repo.preload(:rooms) |> change_property(attrs) |> Repo.update()
+
+      nil ->
+        {:error, :not_found}
     end
   end
 

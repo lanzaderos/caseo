@@ -5,7 +5,15 @@ defmodule Caseo.PropertiesTest do
 
   alias Caseo.Properties
 
-  @attrs %{"name" => "Piso Centro", "rent" => "875,50", "available_on" => "2026-12-01"}
+  @attrs %{
+    "name" => "Piso Centro",
+    "rent" => "875,50",
+    "available_on" => "2026-12-01",
+    "street" => "Calle Mayor 12",
+    "municipality" => "Madrid",
+    "postal_code" => "28013",
+    "province" => "Madrid"
+  }
 
   test "creates, edits and archives a property within its owner's scope" do
     scope = user_scope_fixture()
@@ -50,6 +58,69 @@ defmodule Caseo.PropertiesTest do
 
     assert Keyword.has_key?(changeset.errors, :name)
     assert Keyword.has_key?(changeset.errors, :available_on)
+  end
+
+  test "validates address and mode-specific prices and keeps the Idealista reference" do
+    scope = user_scope_fixture()
+    source_url = "https://www.idealista.com/inmueble/12345678/"
+
+    sale =
+      Map.merge(@attrs, %{
+        "mode" => "sale",
+        "sale_price" => "190000,50",
+        "description" => "Salón exterior",
+        "amenities" => "Ascensor e internet",
+        "source_url" => source_url
+      })
+
+    assert {:error, changeset} = Properties.create_property(scope, Map.delete(sale, "street"))
+    assert Keyword.has_key?(changeset.errors, :street)
+
+    assert {:error, changeset} =
+             Properties.create_property(scope, %{
+               sale
+               | "source_url" => "https://idealista.com.example/anuncio"
+             })
+
+    assert Keyword.has_key?(changeset.errors, :source_url)
+
+    assert {:ok, property} = Properties.create_property(scope, sale)
+    assert property.mode == :sale
+    assert property.sale_price_cents == 19_000_050
+    assert is_nil(property.rent_cents)
+    assert property.source_url == source_url
+
+    assert {:ok, updated} =
+             Properties.update_property(scope, property.id, %{"sale_price" => "195000"})
+
+    assert updated.sale_price_cents == 19_500_000
+    assert :ok = Properties.archive_property(scope, property.id)
+    assert Properties.list_properties(scope) == []
+
+    assert {:error, changeset} =
+             Properties.create_property(scope, Map.put(@attrs, "mode", "rooms"))
+
+    assert Keyword.has_key?(changeset.errors, :rooms)
+  end
+
+  test "legacy properties can be edited before capturing an address" do
+    scope = user_scope_fixture()
+
+    property =
+      Caseo.Repo.insert!(%Caseo.Properties.Property{
+        owner_id: scope.user.id,
+        name: "Inmueble anterior",
+        rent_cents: 87_550,
+        available_on: ~D[2026-12-01]
+      })
+
+    assert {:ok, updated} =
+             Properties.update_property(scope, property.id, %{"name" => "Inmueble renombrado"})
+
+    assert updated.rent_cents == property.rent_cents
+    assert updated.available_on == property.available_on
+    assert updated.mode == :rental
+    assert is_nil(updated.street)
   end
 
   test "isolates reads and writes and ignores injected ownership" do

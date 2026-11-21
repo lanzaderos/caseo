@@ -38,6 +38,61 @@ defmodule CaseoWeb.PropertyLive.Form do
     end
   end
 
+  attr :form, Phoenix.HTML.Form, required: true
+
+  defp rental_fields(assigns) do
+    ~H"""
+    <.input
+      field={@form[:rent]}
+      label="Renta mensual (€)"
+      inputmode="decimal"
+      placeholder="850,00"
+      required
+    />
+    <.input
+      field={@form[:rental_term]}
+      type="select"
+      label="Duración del alquiler"
+      options={[
+        {"Por confirmar", ""},
+        {"Larga duración", :long_term},
+        {"Temporal", :temporary}
+      ]}
+    />
+    <.input
+      field={@form[:available_on]}
+      type="date"
+      label="Disponible desde"
+      required={@form[:rental_term].value in [:temporary, "temporary"]}
+    />
+    <%= if @form[:rental_term].value in [:temporary, "temporary"] do %>
+      <.input field={@form[:available_until]} type="date" label="Disponible hasta" />
+      <.input
+        field={@form[:minimum_months]}
+        type="number"
+        min="1"
+        label="Estancia mínima (meses)"
+      />
+      <.input
+        field={@form[:maximum_months]}
+        type="number"
+        min="1"
+        label="Estancia máxima (meses)"
+      />
+    <% end %>
+    <div class="sm:col-span-2">
+      <.input field={@form[:for_students]} type="checkbox" label="Orientado a estudiantes" />
+    </div>
+    <.input
+      :if={Phoenix.HTML.Form.normalize_value("checkbox", @form[:for_students].value)}
+      field={@form[:academic_year]}
+      label="Curso académico (opcional)"
+      placeholder="2026–2027"
+      maxlength="100"
+    />
+    """
+  end
+
   defp load_form(socket, property, title) do
     assign(socket,
       page_title: title,

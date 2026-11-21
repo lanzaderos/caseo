@@ -21,55 +21,137 @@
           <.input field={@form[:name]} label="Nombre del inmueble" required maxlength="255" />
         </div>
         <.input
-          field={@form[:rent]}
-          label="Renta mensual (€)"
-          inputmode="decimal"
-          placeholder="850,00"
-          required
-        />
-        <.input
-          field={@form[:rental_term]}
+          field={@form[:mode]}
           type="select"
-          label="Duración del alquiler"
+          label="Modalidad"
           options={[
-            {"Por confirmar", ""},
-            {"Larga duración", :long_term},
-            {"Temporal", :temporary}
+            {"Alquiler de vivienda completa", :rental},
+            {"Alquiler por habitaciones", :rooms},
+            {"Venta", :sale}
           ]}
         />
-        <.input
-          field={@form[:available_on]}
-          type="date"
-          label="Disponible desde"
-          required={@form[:rental_term].value in [:temporary, "temporary"]}
-        />
-        <%= if @form[:rental_term].value in [:temporary, "temporary"] do %>
-          <.input field={@form[:available_until]} type="date" label="Disponible hasta" />
-          <.input
-            field={@form[:minimum_months]}
-            type="number"
-            min="1"
-            label="Estancia mínima (meses)"
-          />
-          <.input
-            field={@form[:maximum_months]}
-            type="number"
-            min="1"
-            label="Estancia máxima (meses)"
-          />
-        <% end %>
-        <div class="sm:col-span-2">
-          <.input field={@form[:for_students]} type="checkbox" label="Orientado a estudiantes" />
+        <div class="sm:col-span-2 workspace-divider border-t pt-4">
+          <h2 class="text-lg font-semibold">Dirección</h2>
         </div>
+        <div class="sm:col-span-2">
+          <.input field={@form[:street]} label="Vía y número" maxlength="255" />
+        </div>
+        <.input field={@form[:floor]} label="Piso" maxlength="255" />
+        <.input field={@form[:door]} label="Puerta" maxlength="255" />
+        <.input field={@form[:municipality]} label="Municipio" maxlength="255" />
         <.input
-          :if={Phoenix.HTML.Form.normalize_value("checkbox", @form[:for_students].value)}
-          field={@form[:academic_year]}
-          label="Curso académico (opcional)"
-          placeholder="2026–2027"
-          maxlength="100"
+          field={@form[:postal_code]}
+          label="Código postal"
+          maxlength="255"
+          autocomplete="postal-code"
         />
+        <.input field={@form[:province]} label="Provincia" maxlength="255" />
+        <div class="sm:col-span-2 workspace-divider border-t pt-4">
+          <h2 class="text-lg font-semibold">Descripción y servicios</h2>
+        </div>
+        <div class="sm:col-span-2">
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            label="Descripción"
+            maxlength="10000"
+          />
+          <.input
+            field={@form[:amenities]}
+            type="textarea"
+            label="Servicios y características"
+            maxlength="5000"
+          />
+          <.input
+            field={@form[:source_url]}
+            type="url"
+            label="Enlace de Idealista (opcional)"
+            maxlength="2048"
+          />
+          <p class="workspace-muted text-sm">
+            Puedes pegar el enlace del anuncio y copiar sus datos en este formulario.
+          </p>
+        </div>
+        <%= cond do %>
+          <% @form[:mode].value in [:rooms, "rooms"] -> %>
+            <fieldset
+              id="property-rooms"
+              class="sm:col-span-2 workspace-divider space-y-4 border-t pt-4"
+            >
+              <legend class="text-lg font-semibold">Habitaciones</legend>
+              <p :for={error <- @form[:rooms].errors} class="text-error text-sm">
+                {translate_error(error)}
+              </p>
+              <.inputs_for :let={room} field={@form[:rooms]}>
+                <fieldset class="workspace-divider grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
+                  <legend class="px-2 font-semibold">Habitación {room.index + 1}</legend>
+                  <input type="hidden" name="property[rooms_sort][]" value={room.index} />
+                  <div class="sm:col-span-2">
+                    <.input field={room[:name]} label="Nombre de la habitación" maxlength="255" />
+                    <.input
+                      field={room[:description]}
+                      type="textarea"
+                      label="Descripción de la habitación"
+                      maxlength="5000"
+                    />
+                  </div>
+                  <.rental_fields form={room} />
+                  <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
+                    <.link
+                      :if={room.data.id}
+                      navigate={~p"/inmuebles/#{@property.id}/habitaciones/#{room.data.id}/fotos"}
+                      class="btn btn-ghost"
+                    >
+                      Fotos de la habitación
+                    </.link>
+                    <button
+                      id={"remove-room-#{room.index}"}
+                      type="button"
+                      name="property[rooms_drop][]"
+                      value={room.index}
+                      phx-click={JS.dispatch("change")}
+                      class="btn btn-ghost text-error"
+                    >
+                      Quitar habitación
+                    </button>
+                  </div>
+                </fieldset>
+              </.inputs_for>
+              <input type="hidden" name="property[rooms_drop][]" />
+              <button
+                id="add-room"
+                type="button"
+                name="property[rooms_sort][]"
+                value="new"
+                phx-click={JS.dispatch("change")}
+                class="btn btn-ghost"
+              >
+                <.icon name="hero-plus" class="size-4" /> Añadir habitación
+              </button>
+            </fieldset>
+          <% @form[:mode].value in [:sale, "sale"] -> %>
+            <.input
+              field={@form[:sale_price]}
+              label="Precio total (€)"
+              inputmode="decimal"
+              required
+            />
+            <.input field={@form[:available_on]} type="date" label="Disponible desde (opcional)" />
+          <% true -> %>
+            <.rental_fields form={@form} />
+        <% end %>
       </div>
-      <div class="workspace-divider flex flex-wrap justify-end gap-2 border-t px-5 py-4 sm:px-8">
+      <div class="workspace-divider flex flex-wrap items-center justify-end gap-2 border-t px-5 py-4 sm:px-8">
+        <.link
+          :if={@property.id}
+          navigate={~p"/inmuebles/#{@property.id}"}
+          class="btn btn-ghost me-auto"
+        >
+          Ver ficha y fotos
+        </.link>
+        <p :if={is_nil(@property.id)} class="workspace-muted me-auto text-sm">
+          Podrás añadir fotos desde la ficha después de guardar.
+        </p>
         <.link
           id="cancel-property"
           navigate={@return_path}

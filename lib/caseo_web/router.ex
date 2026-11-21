@@ -55,10 +55,14 @@ defmodule CaseoWeb.Router do
       live "/inmuebles", PropertyLive.Index, :index
       live "/inmuebles/nuevo", PropertyLive.Form, :new
       live "/inmuebles/:id/editar", PropertyLive.Form, :edit
+      live "/inmuebles/:id/habitaciones/:room_id/fotos", PropertyLive.Gallery, :room
+      live "/inmuebles/:id", PropertyLive.Gallery, :property
 
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
+
+    get "/archivos/inmuebles/:id", PropertyPhotoController, :show
 
     get "/users/settings/passkeys", PasskeyController, :settings
     post "/users/settings/passkeys/options", PasskeyController, :registration_options

@@ -59,7 +59,11 @@
               <.icon name="hero-home-modern" class="size-5" />
             </span>
             <div class="min-w-0">
-              <h2 class="[overflow-wrap:anywhere] text-base font-semibold">{property.name}</h2>
+              <h2 class="[overflow-wrap:anywhere] text-base font-semibold">
+                <.link navigate={~p"/inmuebles/#{property.id}"} class="hover:underline">
+                  {property.name}
+                </.link>
+              </h2>
               <div class="flex flex-wrap gap-x-2 text-sm workspace-muted">
                 <span :if={property.rental_term == :temporary}>Temporal</span>
                 <span :if={property.for_students}>Para estudiantes</span>
@@ -68,17 +72,31 @@
           </div>
 
           <p class="text-sm tabular-nums">
-            <strong class="font-semibold">{Property.formatted_rent(property)} €</strong>
-            <span class="workspace-muted block text-xs">al mes</span>
+            <%= case property.mode do %>
+              <% :rooms -> %>
+                <strong class="font-semibold">{length(property.rooms)} habitaciones</strong>
+                <span class="workspace-muted block text-xs">Alquiler por habitaciones</span>
+              <% :sale -> %>
+                <strong class="font-semibold">
+                  {Offer.format_amount(property.sale_price_cents)} €
+                </strong>
+                <span class="workspace-muted block text-xs">Venta</span>
+              <% :rental -> %>
+                <strong class="font-semibold">{Property.formatted_rent(property)} €</strong>
+                <span class="workspace-muted block text-xs">al mes</span>
+            <% end %>
           </p>
           <p class="workspace-muted text-right text-sm md:text-left">
-            <%= if property.available_on do %>
-              <span class="block text-xs">Disponible desde</span>
-              <time datetime={Date.to_iso8601(property.available_on)} class="tabular-nums">
-                {Calendar.strftime(property.available_on, "%d/%m/%Y")}
-              </time>
-            <% else %>
-              Por confirmar
+            <%= cond do %>
+              <% property.mode == :rooms -> %>
+                Consultar habitaciones
+              <% property.available_on -> %>
+                <span class="block text-xs">Disponible desde</span>
+                <time datetime={Date.to_iso8601(property.available_on)} class="tabular-nums">
+                  {Calendar.strftime(property.available_on, "%d/%m/%Y")}
+                </time>
+              <% true -> %>
+                Por confirmar
             <% end %>
           </p>
           <div class="col-span-2 flex justify-end gap-1 md:col-span-1">

@@ -2,6 +2,7 @@ defmodule CaseoWeb.PropertyLive.Index do
   use CaseoWeb, :live_view
 
   alias Caseo.Properties
+  alias Caseo.Properties.Offer
   alias Caseo.Properties.Property
 
   @impl true
