@@ -5,6 +5,8 @@ defmodule CaseoWeb.Layouts do
   """
   use CaseoWeb, :html
 
+  alias Phoenix.LiveView.Rendered
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -12,15 +14,14 @@ defmodule CaseoWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
-  Renders your app layout.
+  Wraps page content in the shared full-height gradient and renders flash messages.
 
-  This function is typically invoked from every template,
-  and it often contains your application menu, sidebar,
-  or similar.
+  The default layout centers account and authentication content and includes
+  a link back to the home page. Pass `wide` for the landing page layout.
 
   ## Examples
 
-      <Layouts.app flash={@flash}>
+      <Layouts.app flash={@flash} current_scope={@current_scope}>
         <h1>Content</h1>
       </Layouts.app>
 
@@ -31,10 +32,11 @@ defmodule CaseoWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
-  attr :wide, :boolean, default: false
+  attr :wide, :boolean, default: false, doc: "uses the wider layout for the landing page"
 
   slot :inner_block, required: true
 
+  @spec app(map()) :: Rendered.t()
   def app(assigns) do
     ~H"""
     <%= if @wide do %>
@@ -66,7 +68,7 @@ defmodule CaseoWeb.Layouts do
   end
 
   @doc """
-  Shows the flash group with standard titles and content.
+  Renders flash messages and LiveView connection error notices.
 
   ## Examples
 
@@ -75,6 +77,7 @@ defmodule CaseoWeb.Layouts do
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :id, :string, default: "flash-group", doc: "the optional id of flash container"
 
+  @spec flash_group(map()) :: Rendered.t()
   def flash_group(assigns) do
     ~H"""
     <div id={@id} aria-live="polite">
@@ -113,6 +116,7 @@ defmodule CaseoWeb.Layouts do
 
   See <head> in root.html.heex which applies the theme before page load.
   """
+  @spec theme_toggle(map()) :: Rendered.t()
   def theme_toggle(assigns) do
     ~H"""
     <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">

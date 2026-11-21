@@ -30,7 +30,7 @@ defmodule CaseoWeb.CoreComponents do
   use Gettext, backend: CaseoWeb.Gettext
 
   alias Phoenix.HTML.Form
-  alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.{JS, Rendered}
 
   @doc """
   Renders flash notices.
@@ -81,19 +81,24 @@ defmodule CaseoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a button with navigation support.
+  Renders a button or a styled link when given `href`, `navigate`, or `patch`.
+
+  The default is a soft primary style. Set `variant="primary"` for a solid
+  primary button, or pass `class` to replace the default classes.
 
   ## Examples
 
       <.button>Send!</.button>
       <.button phx-click="go" variant="primary">Send!</.button>
       <.button navigate={~p"/"}>Home</.button>
+      <.button class="btn btn-neutral rounded-full">Save</.button>
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :string
   attr :variant, :string, values: ~w(primary)
   slot :inner_block, required: true
 
+  @spec button(map()) :: Rendered.t()
   def button(%{rest: rest} = assigns) do
     variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
 
@@ -168,6 +173,7 @@ defmodule CaseoWeb.CoreComponents do
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
+  @spec input(map()) :: Rendered.t()
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
@@ -281,12 +287,13 @@ defmodule CaseoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a header with title.
+  Renders a page heading with optional `:subtitle` and `:actions` slots.
   """
   slot :inner_block, required: true
   slot :subtitle
   slot :actions
 
+  @spec header(map()) :: Rendered.t()
   def header(assigns) do
     ~H"""
     <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
@@ -414,6 +421,7 @@ defmodule CaseoWeb.CoreComponents do
   attr :name, :string, required: true
   attr :class, :string, default: "size-4"
 
+  @spec icon(map()) :: Rendered.t()
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
