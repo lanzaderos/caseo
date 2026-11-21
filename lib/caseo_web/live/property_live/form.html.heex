@@ -5,7 +5,9 @@
     class="space-y-6 sm:space-y-8"
   >
     <header>
-      <h1 id="property-form-title" class="workspace-title">{@page_title}</h1>
+      <h1 id="property-form-title" class="workspace-title">
+        {@page_title}
+      </h1>
     </header>
     <.form
       for={@form}
@@ -19,15 +21,199 @@
           <.input field={@form[:name]} label="Nombre del inmueble" required maxlength="255" />
         </div>
         <.input
-          field={@form[:rent]}
-          label="Renta mensual (€)"
-          inputmode="decimal"
-          placeholder="850,00"
-          required
+          field={@form[:mode]}
+          type="select"
+          label="Modalidad"
+          options={[
+            {"Alquiler de vivienda completa", :rental},
+            {"Alquiler por habitaciones", :rooms},
+            {"Venta", :sale}
+          ]}
         />
-        <.input field={@form[:available_on]} type="date" label="Disponible desde (opcional)" />
+        <section
+          class="sm:col-span-2 workspace-divider space-y-4 border-t pt-4"
+          aria-labelledby="property-address-title"
+        >
+          <h2 id="property-address-title" class="text-lg font-semibold">Dirección</h2>
+          <div
+            id="property-address-search"
+            phx-hook="PropertyAddress"
+            phx-update="ignore"
+            data-search-url={~p"/inmuebles/direcciones"}
+            class="space-y-3"
+          >
+            <label for="property-address-query" class="text-sm font-medium">
+              Buscar dirección
+            </label>
+            <div data-address-autocomplete></div>
+            <p class="workspace-muted text-xs">
+              Busca por calle, número y municipio en España. Datos del IGN · CartoCiudad.
+            </p>
+            <p data-address-status role="status" class="workspace-muted text-sm" hidden></p>
+            <div
+              data-address-map
+              aria-label="Mapa de la dirección seleccionada"
+              role="region"
+              class="property-address-map workspace-divider h-56 w-full rounded-xl border"
+              hidden
+            >
+            </div>
+          </div>
+          <input
+            type="hidden"
+            name={@form[:latitude].name}
+            id={@form[:latitude].id}
+            value={@form[:latitude].value}
+          />
+          <input
+            type="hidden"
+            name={@form[:longitude].name}
+            id={@form[:longitude].id}
+            value={@form[:longitude].value}
+          />
+          <details
+            id="property-address-fields"
+            open={address_errors?(@form)}
+            class="workspace-divider rounded-xl border px-4 py-3"
+          >
+            <summary class="cursor-pointer text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4">
+              Introducir o corregir dirección
+              <span :if={@form[:street].value} class="workspace-muted block pt-1 font-normal">
+                {@form[:street].value}
+                <span :if={@form[:municipality].value}>· {@form[:municipality].value}</span>
+              </span>
+            </summary>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <.input field={@form[:street]} label="Vía y número" maxlength="255" />
+              </div>
+              <.input field={@form[:municipality]} label="Municipio" maxlength="255" />
+              <.input
+                field={@form[:postal_code]}
+                label="Código postal"
+                maxlength="255"
+                autocomplete="postal-code"
+              />
+              <.input field={@form[:province]} label="Provincia" maxlength="255" />
+              <p
+                :for={error <- @form[:latitude].errors ++ @form[:longitude].errors}
+                class="sm:col-span-2 text-error text-sm"
+              >
+                {translate_error(error)}
+              </p>
+            </div>
+          </details>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <.input field={@form[:floor]} label="Piso (opcional)" maxlength="255" />
+            <.input field={@form[:door]} label="Puerta (opcional)" maxlength="255" />
+          </div>
+        </section>
+        <div class="sm:col-span-2 workspace-divider border-t pt-4">
+          <h2 class="text-lg font-semibold">Descripción y servicios</h2>
+        </div>
+        <div class="sm:col-span-2">
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            label="Descripción"
+            maxlength="10000"
+          />
+          <.input
+            field={@form[:amenities]}
+            type="textarea"
+            label="Servicios y características"
+            maxlength="5000"
+          />
+          <.input
+            field={@form[:source_url]}
+            type="url"
+            label="Enlace de Idealista (opcional)"
+            maxlength="2048"
+          />
+          <p class="workspace-muted text-sm">
+            Puedes pegar el enlace del anuncio y copiar sus datos en este formulario.
+          </p>
+        </div>
+        <%= cond do %>
+          <% @form[:mode].value in [:rooms, "rooms"] -> %>
+            <fieldset
+              id="property-rooms"
+              class="sm:col-span-2 workspace-divider space-y-4 border-t pt-4"
+            >
+              <legend class="text-lg font-semibold">Habitaciones</legend>
+              <p :for={error <- @form[:rooms].errors} class="text-error text-sm">
+                {translate_error(error)}
+              </p>
+              <.inputs_for :let={room} field={@form[:rooms]}>
+                <fieldset class="workspace-divider grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
+                  <legend class="px-2 font-semibold">Habitación {room.index + 1}</legend>
+                  <input type="hidden" name="property[rooms_sort][]" value={room.index} />
+                  <div class="sm:col-span-2">
+                    <.input field={room[:name]} label="Nombre de la habitación" maxlength="255" />
+                    <.input
+                      field={room[:description]}
+                      type="textarea"
+                      label="Descripción de la habitación"
+                      maxlength="5000"
+                    />
+                  </div>
+                  <.rental_fields form={room} />
+                  <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
+                    <.link
+                      :if={room.data.id}
+                      navigate={~p"/inmuebles/#{@property.id}/habitaciones/#{room.data.id}/fotos"}
+                      class="btn btn-ghost"
+                    >
+                      Fotos de la habitación
+                    </.link>
+                    <button
+                      id={"remove-room-#{room.index}"}
+                      type="button"
+                      name="property[rooms_drop][]"
+                      value={room.index}
+                      phx-click={JS.dispatch("change")}
+                      class="btn btn-ghost text-error"
+                    >
+                      Quitar habitación
+                    </button>
+                  </div>
+                </fieldset>
+              </.inputs_for>
+              <input type="hidden" name="property[rooms_drop][]" />
+              <button
+                id="add-room"
+                type="button"
+                name="property[rooms_sort][]"
+                value="new"
+                phx-click={JS.dispatch("change")}
+                class="btn btn-ghost"
+              >
+                <.icon name="hero-plus" class="size-4" /> Añadir habitación
+              </button>
+            </fieldset>
+          <% @form[:mode].value in [:sale, "sale"] -> %>
+            <.input
+              field={@form[:sale_price]}
+              label="Precio total (€)"
+              inputmode="decimal"
+              required
+            />
+            <.input field={@form[:available_on]} type="date" label="Disponible desde (opcional)" />
+          <% true -> %>
+            <.rental_fields form={@form} />
+        <% end %>
       </div>
-      <div class="workspace-divider flex flex-wrap justify-end gap-2 border-t px-5 py-4 sm:px-8">
+      <div class="workspace-divider flex flex-wrap items-center justify-end gap-2 border-t px-5 py-4 sm:px-8">
+        <.link
+          :if={@property.id}
+          navigate={~p"/inmuebles/#{@property.id}"}
+          class="btn btn-ghost me-auto"
+        >
+          Ver ficha y fotos
+        </.link>
+        <p :if={is_nil(@property.id)} class="workspace-muted me-auto text-sm">
+          Podrás añadir fotos desde la ficha después de guardar.
+        </p>
         <.link
           id="cancel-property"
           navigate={@return_path}

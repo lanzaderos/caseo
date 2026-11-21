@@ -18,7 +18,8 @@ config :phoenix, :filter_parameters, [
   "attestationObject",
   "authenticatorData",
   "signature",
-  "userHandle"
+  "userHandle",
+  "address_query"
 ]
 
 config :caseo, :scopes,

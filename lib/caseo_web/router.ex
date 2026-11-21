@@ -59,15 +59,21 @@ defmodule CaseoWeb.Router do
   scope "/", CaseoWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    get "/inmuebles/direcciones", PropertyAddressController, :index
+
     live_session :require_authenticated_user,
       on_mount: [{CaseoWeb.UserAuth, :require_authenticated}] do
       live "/inmuebles", PropertyLive.Index, :index
       live "/inmuebles/nuevo", PropertyLive.Form, :new
       live "/inmuebles/:id/editar", PropertyLive.Form, :edit
+      live "/inmuebles/:id/habitaciones/:room_id/fotos", PropertyLive.Gallery, :room
+      live "/inmuebles/:id", PropertyLive.Gallery, :property
 
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
+
+    get "/archivos/inmuebles/:id", PropertyPhotoController, :show
 
     get "/users/settings/passkeys", PasskeyController, :settings
     post "/users/settings/passkeys/options", PasskeyController, :registration_options

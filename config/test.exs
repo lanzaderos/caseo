@@ -1,5 +1,7 @@
 import Config
 
+config :caseo, Caseo.Properties.AddressSearch, plug: {Req.Test, Caseo.Properties.AddressSearch}
+
 config :caseo, :passkeys, origin: "http://localhost:4000", rp_id: "localhost"
 
 # Only in tests, remove the complexity from the password hashing algorithm

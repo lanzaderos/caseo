@@ -2,6 +2,7 @@
    https://tailwindcss.com/docs/configuration */
 
 @import "tailwindcss" source(none);
+@import "leaflet/dist/leaflet.css" layer(components);
 @source "../css";
 @source "../js";
 @source "../../lib/caseo_web";
@@ -345,4 +346,57 @@
 
 .caseo-notice > :first-child {
   color: var(--notice-accent);
+}
+
+.property-address-autocomplete__wrapper {
+  position: relative;
+  z-index: 2;
+}
+
+.property-address-autocomplete__menu {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 1;
+  margin-top: 0.35rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--workspace-line);
+  border-radius: 0.75rem;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  box-shadow: 0 10px 24px -10px #142e52a0;
+}
+
+.property-address-autocomplete__menu--hidden {
+  display: none;
+}
+
+.property-address-autocomplete__option {
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.property-address-autocomplete__option--focused,
+.property-address-autocomplete__option:hover {
+  background: var(--workspace-tint);
+  color: var(--workspace-ink);
+}
+
+.property-address-autocomplete__option--no-results {
+  color: var(--workspace-muted);
+  cursor: default;
+}
+
+.property-address-autocomplete__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.property-address-map {
+  isolation: isolate;
 }

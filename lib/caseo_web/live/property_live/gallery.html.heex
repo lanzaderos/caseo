@@ -1,0 +1,161 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:properties}>
+  <section lang="es" class="space-y-6">
+    <header class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <.link
+          navigate={if(@room, do: ~p"/inmuebles/#{@property.id}", else: ~p"/inmuebles")}
+          class="workspace-muted text-sm hover:underline"
+        >
+          <.icon name="hero-arrow-left" class="size-4" />
+          {if(@room, do: @property.name, else: "Inmuebles")}
+        </.link>
+        <h1 id="property-detail-title" class="workspace-title mt-2">{@page_title}</h1>
+      </div>
+      <.link navigate={~p"/inmuebles/#{@property.id}/editar"} class="btn workspace-primary">
+        Editar inmueble
+      </.link>
+    </header>
+
+    <div class="workspace-glass space-y-4 rounded-2xl p-5 sm:p-8">
+      <%= if @room do %>
+        <p class="font-semibold">{Offer.format_amount(@room.rent_cents)} € al mes</p>
+        <p :if={@room.description} class="whitespace-pre-wrap">{@room.description}</p>
+        <.availability offer={@room} />
+      <% else %>
+        <%= case @property.mode do %>
+          <% :rental -> %>
+            <p class="font-semibold">{Property.formatted_rent(@property)} € al mes</p>
+            <.availability offer={@property} />
+          <% :sale -> %>
+            <p class="font-semibold">
+              {Offer.format_amount(@property.sale_price_cents)} € · Venta
+            </p>
+            <.availability offer={@property} />
+          <% :rooms -> %>
+            <p class="font-semibold">Alquiler por habitaciones</p>
+        <% end %>
+        <p :if={@property.street} id="property-address" class="workspace-muted">
+          {Enum.join(
+            Enum.reject([@property.street, @property.floor, @property.door], &is_nil/1),
+            ", "
+          )}
+          <br />{@property.postal_code} {@property.municipality} ({@property.province})
+        </p>
+        <p :if={@property.description} class="whitespace-pre-wrap">{@property.description}</p>
+        <div :if={@property.amenities}>
+          <h2 class="font-semibold">Servicios y características</h2>
+          <p class="whitespace-pre-wrap">{@property.amenities}</p>
+        </div>
+        <.link
+          :if={@property.source_url}
+          href={@property.source_url}
+          id="property-source"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link"
+        >
+          Ver anuncio en Idealista
+        </.link>
+      <% end %>
+    </div>
+
+    <section
+      :if={!@room && @property.mode == :rooms}
+      class="workspace-glass rounded-2xl p-5 sm:p-8"
+    >
+      <h2 class="mb-3 text-lg font-semibold">Habitaciones</h2>
+      <ul id="detail-rooms" phx-update="stream" class="space-y-2">
+        <li :for={{id, room} <- @streams.rooms} id={id} class="workspace-divider border-t py-3">
+          <.link
+            navigate={~p"/inmuebles/#{@property.id}/habitaciones/#{room.id}/fotos"}
+            class="font-semibold hover:underline"
+          >
+            {room.name}
+          </.link>
+          <p>{Offer.format_amount(room.rent_cents)} € al mes</p>
+          <.availability offer={room} />
+        </li>
+      </ul>
+    </section>
+
+    <section class="workspace-glass rounded-2xl p-5 sm:p-8" aria-labelledby="photo-title">
+      <h2 id="photo-title" class="mb-4 text-lg font-semibold">
+        {if(@room, do: "Fotos de la habitación", else: "Fotos del inmueble")}
+      </h2>
+      <ul id="property-photos" phx-update="stream" class="grid gap-4 sm:grid-cols-2">
+        <li id="photos-empty" class="workspace-muted hidden text-sm only:block">
+          Todavía no hay fotos.
+        </li>
+        <li
+          :for={{id, photo} <- @streams.photos}
+          id={id}
+          class="workspace-divider overflow-hidden rounded-xl border"
+        >
+          <img
+            src={~p"/archivos/inmuebles/#{photo.id}"}
+            alt={"Foto de #{@page_title}"}
+            loading="lazy"
+            class="aspect-[4/3] w-full object-cover"
+          />
+          <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+            <span :if={photo.id == @cover_id} class="text-sm font-semibold">Portada</span>
+            <button
+              :if={photo.id != @cover_id}
+              id={"cover-photo-#{photo.id}"}
+              type="button"
+              phx-click="cover_photo"
+              phx-value-id={photo.id}
+              class="btn btn-sm btn-ghost"
+            >
+              Elegir portada
+            </button>
+            <button
+              id={"delete-photo-#{photo.id}"}
+              type="button"
+              phx-click="delete_photo"
+              phx-value-id={photo.id}
+              data-confirm="¿Eliminar esta foto?"
+              class="btn btn-sm btn-ghost text-error"
+            >
+              Eliminar
+            </button>
+          </div>
+        </li>
+      </ul>
+      <form
+        :if={!@gallery_full?}
+        id="property-photo-form"
+        phx-change="validate_photo"
+        phx-submit="upload_photo"
+        class="mt-5 space-y-3"
+      >
+        <label for={@uploads.photo.ref} class="block text-sm font-medium">Añadir foto</label>
+        <.live_file_input upload={@uploads.photo} class="file-input w-full max-w-sm" />
+        <p class="workspace-muted text-sm">JPEG, PNG o WebP. Hasta 5 MB por foto.</p>
+        <p :for={error <- upload_errors(@uploads.photo)} class="text-error text-sm">
+          {upload_error_label(error)}
+        </p>
+        <div :for={entry <- @uploads.photo.entries} class="flex flex-wrap items-center gap-3">
+          <p :for={error <- upload_errors(@uploads.photo, entry)} class="text-error text-sm">
+            {upload_error_label(error)}
+          </p>
+          <button
+            type="button"
+            class="btn btn-ghost"
+            phx-click="cancel_photo"
+            phx-value-ref={entry.ref}
+          >
+            Quitar selección
+          </button>
+        </div>
+        <button
+          type="submit"
+          class="btn workspace-primary"
+          disabled={@uploads.photo.entries == []}
+        >
+          Subir foto
+        </button>
+      </form>
+    </section>
+  </section>
+</Layouts.app>
