@@ -199,8 +199,6 @@ defmodule CaseoWeb.WhatsappLive.Inbox do
   defp suggestion_label({property, nil}), do: property.name
   defp suggestion_label({property, room}), do: "#{property.name} · #{room.name}"
 
-  defp already_linked?(nil, _suggestion), do: false
-
   defp already_linked?(%Lead{interests: interests}, {property, room}) do
     Enum.any?(interests, &(&1.property_id == property.id and &1.room_id == (room && room.id)))
   end
