@@ -1,5 +1,7 @@
 import Config
 
+config :caseo, Oban, testing: :manual
+
 config :caseo, Caseo.Properties.AddressSearch, plug: {Req.Test, Caseo.Properties.AddressSearch}
 config :caseo, Caseo.Properties.ListingImages, plug: {Req.Test, Caseo.Properties.ListingImages}
 

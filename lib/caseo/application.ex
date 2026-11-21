@@ -10,10 +10,9 @@ defmodule Caseo.Application do
     children = [
       CaseoWeb.Telemetry,
       Caseo.Repo,
+      {Oban, Application.fetch_env!(:caseo, Oban)},
       {DNSCluster, query: Application.get_env(:caseo, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Caseo.PubSub},
-      # Start a worker by calling: Caseo.Worker.start_link(arg)
-      # {Caseo.Worker, arg},
       # Start to serve requests, typically the last entry
       CaseoWeb.Endpoint
     ]
