@@ -1,0 +1,93 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    if: vars.PRODUCTION_CD_ENABLED == 'true'
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Build production release
+    needs: checks
+    if: github.ref == 'refs/heads/main'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 20
+    env:
+      MIX_ENV: prod
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - name: Fetch production dependencies
+        run: mix deps.get --only prod --check-locked
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: assets/package-lock.json
+      - name: Build assets and release
+        run: |
+          mix compile --warnings-as-errors
+          mix assets.deploy
+          mix release
+          tar -czf caseo-linux-x86_64.tar.gz -C _build/prod/rel/caseo .
+      - name: Upload production release
+        uses: actions/upload-artifact@v7
+        with:
+          name: caseo-linux-x86_64-${{ github.sha }}
+          path: caseo-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  images:
+    name: Publish container images
+    needs: checks
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - image: ghcr.io/${{ github.repository }}
+            context: .
+          - image: ghcr.io/${{ github.repository }}-whatsmeow
+            context: whatsmeow
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ matrix.image }}
+          # latest y sha en main; 1.2.3 y 1.2 en tags v1.2.3.
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
