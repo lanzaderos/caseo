@@ -9,7 +9,7 @@ defmodule Caseo.Visits.Visit do
 
   @type t :: %__MODULE__{}
 
-  @statuses [:scheduled, :confirmed, :done, :no_show, :cancelled]
+  @statuses [:requested, :scheduled, :confirmed, :done, :no_show, :cancelled]
 
   schema "visits" do
     belongs_to :interest, Caseo.Leads.Interest
@@ -28,6 +28,7 @@ defmodule Caseo.Visits.Visit do
   @doc "Statuses with their labels."
   def status_options do
     [
+      {"Pendiente de aprobar", :requested},
       {"Programada", :scheduled},
       {"Confirmada", :confirmed},
       {"Realizada", :done},
@@ -41,8 +42,8 @@ defmodule Caseo.Visits.Visit do
     Enum.find_value(status_options(), fn {label, value} -> value == status && label end)
   end
 
-  @doc "Statuses of visits still to happen."
-  def pending_statuses, do: [:scheduled, :confirmed]
+  @doc "Statuses of visits still to happen. They hold their slot."
+  def pending_statuses, do: [:requested, :scheduled, :confirmed]
 
   @doc """
   Validates a visit. Moving `starts_at` of a saved visit records the previous

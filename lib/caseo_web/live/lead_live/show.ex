@@ -5,6 +5,7 @@ defmodule CaseoWeb.LeadLive.Show do
   alias Caseo.Leads.Interest
   alias Caseo.Leads.Lead
   alias Caseo.Properties
+  alias Caseo.Visits
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -18,7 +19,10 @@ defmodule CaseoWeb.LeadLive.Show do
            form: to_form(Leads.change_lead(lead)),
            link_form: to_form(%{"target" => ""}, as: :link),
            target_options: target_options(socket.assigns.current_scope),
-           visits: Caseo.Visits.list_visits(socket.assigns.current_scope, lead_id: lead.id)
+           visits: Visits.list_visits(socket.assigns.current_scope, lead_id: lead.id),
+           schedule: nil,
+           booking_url: nil,
+           free_slot_count: 0
          )
          |> stream(:interests, Enum.map(lead.interests, &interest_item/1))}
 
@@ -109,6 +113,41 @@ defmodule CaseoWeb.LeadLive.Show do
     end
   end
 
+  def handle_event("open_schedule", %{"id" => id}, socket) do
+    case find_interest(socket, id) do
+      %Interest{} = interest ->
+        {:noreply,
+         assign(socket,
+           schedule: interest,
+           booking_url: nil,
+           free_slot_count: length(Visits.free_slots(scope(socket)))
+         )}
+
+      nil ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("close_schedule", _params, socket) do
+    {:noreply, assign(socket, schedule: nil, booking_url: nil)}
+  end
+
+  def handle_event("create_booking_link", _params, socket) do
+    case Visits.create_booking_link(scope(socket), socket.assigns.schedule.id) do
+      {:ok, token} -> {:noreply, assign(socket, booking_url: url(~p"/reservar/#{token}"))}
+      {:error, :not_found} -> {:noreply, assign(socket, schedule: nil)}
+    end
+  end
+
+  def handle_event("revoke_booking_link", _params, socket) do
+    Visits.revoke_booking_links(scope(socket), socket.assigns.schedule.id)
+
+    {:noreply,
+     socket
+     |> assign(booking_url: nil)
+     |> put_flash(:info, "Enlace revocado.")}
+  end
+
   def handle_event("unlink", %{"id" => id}, socket) do
     Leads.delete_interest(scope(socket), id)
     {:noreply, socket |> reload_lead() |> put_flash(:info, "Inmueble desvinculado.")}
@@ -150,6 +189,16 @@ defmodule CaseoWeb.LeadLive.Show do
 
       [{property.name, to_string(property.id)} | rooms]
     end)
+  end
+
+  # Opens WhatsApp (web or app) with the message ready to send.
+  defp whatsapp_url(lead, interest, booking_url) do
+    first_name = lead.name |> String.split() |> List.first()
+
+    text =
+      "Hola #{first_name}, elige cuándo quieres visitar #{place(interest)}: #{booking_url}"
+
+    "https://wa.me/#{String.trim_leading(lead.phone, "+")}?text=#{URI.encode(text, &URI.char_unreserved?/1)}"
   end
 
   # The unsaved choice while editing, else the stored outcome.

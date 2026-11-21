@@ -1,0 +1,93 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section lang="es" class="space-y-6">
+    <%= cond do %>
+      <% is_nil(@link) -> %>
+        <div id="booking-unavailable" class="landing-glass-panel rounded-2xl p-6 text-center">
+          <h1 class="text-xl font-semibold">Enlace no disponible</h1>
+          <p class="workspace-muted mt-2 text-sm">
+            Pide a quien te lo envió un enlace nuevo.
+          </p>
+        </div>
+      <% @link.visit && @link.visit.status == :cancelled -> %>
+        <div id="booking-declined" class="landing-glass-panel rounded-2xl p-6 text-center">
+          <h1 class="text-xl font-semibold">No se ha podido confirmar la visita</h1>
+          <p class="workspace-muted mt-2 text-sm">
+            Pide a quien te envió el enlace otra fecha.
+          </p>
+        </div>
+      <% @link.visit -> %>
+        <div id="booking-requested" class="landing-glass-panel rounded-2xl p-6 text-center">
+          <span class="workspace-marker mx-auto mb-4 grid size-12 place-items-center rounded-xl">
+            <.icon name="hero-check" class="size-6" />
+          </span>
+          <h1 class="text-xl font-semibold">Solicitud enviada</h1>
+          <p class="mt-2">
+            Has pedido visitar <strong>{place(@link.interest)}</strong>
+            el <strong>
+              {String.downcase(day_label(NaiveDateTime.to_date(@link.visit.starts_at)))} a las {hour(
+                @link.visit.starts_at
+              )}
+            </strong>.
+          </p>
+          <p class="workspace-muted mt-2 text-sm">
+            Te confirmaremos la visita por WhatsApp.
+          </p>
+        </div>
+      <% !@open? -> %>
+        <div id="booking-closed" class="landing-glass-panel rounded-2xl p-6 text-center">
+          <h1 class="text-xl font-semibold">Este enlace ha caducado</h1>
+          <p class="workspace-muted mt-2 text-sm">
+            Pide a quien te lo envió un enlace nuevo.
+          </p>
+        </div>
+      <% true -> %>
+        <header>
+          <h1 class="text-2xl font-semibold">
+            Hola, {first_name(@link.interest.lead.name)}
+          </h1>
+          <p class="mt-1">
+            Elige cuándo quieres visitar <strong>{place(@link.interest)}</strong>
+            <span :if={@link.interest.property.municipality} class="workspace-muted">
+              ({@link.interest.property.municipality})
+            </span>.
+          </p>
+        </header>
+
+        <p
+          :if={@days == []}
+          id="booking-no-slots"
+          class="landing-glass-panel rounded-2xl p-6 text-sm"
+        >
+          Ahora mismo no hay huecos libres. Vuelve a entrar en este enlace más tarde.
+        </p>
+
+        <section
+          :for={[{first, _} | _] = slots <- @days}
+          class="landing-glass-panel rounded-2xl p-4"
+        >
+          <h2 class="mb-3 text-sm font-semibold">
+            {day_label(NaiveDateTime.to_date(first))}
+          </h2>
+          <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <button
+              :for={{starts_at, _minutes} <- slots}
+              id={"slot-#{Calendar.strftime(starts_at, "%Y%m%d%H%M")}"}
+              type="button"
+              phx-click="book"
+              phx-value-slot={NaiveDateTime.to_iso8601(starts_at)}
+              data-confirm={"¿Pedir visita el #{String.downcase(day_label(NaiveDateTime.to_date(starts_at)))} a las #{hour(starts_at)}?"}
+              phx-disable-with="…"
+              class="btn btn-outline min-h-11 rounded-xl tabular-nums"
+            >
+              {hour(starts_at)}
+            </button>
+          </div>
+        </section>
+
+        <p id="booking-privacy" class="workspace-muted text-xs">
+          Usamos tu nombre y teléfono solo para gestionar esta visita, por encargo de la
+          inmobiliaria que te envió el enlace. Puedes pedirle que los borre en cualquier momento.
+        </p>
+    <% end %>
+  </section>
+</Layouts.app>

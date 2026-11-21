@@ -29,9 +29,11 @@ defmodule CaseoWeb.VisitLiveTest do
 
     {:ok, lead_view, _html} = live(conn, ~p"/interesados/#{lead.id}")
 
+    lead_view |> element("#schedule-visit-#{interest.id}") |> render_click()
+
     {:ok, form_view, _html} =
       lead_view
-      |> element("#schedule-visit-#{interest.id}")
+      |> element("#schedule-manually")
       |> render_click()
       |> follow_redirect(conn)
 

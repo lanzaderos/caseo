@@ -18,6 +18,10 @@ defmodule CaseoWeb.VisitLive.Index do
 
   @impl true
   def handle_params(params, _uri, socket) do
+    {:noreply, socket |> assign(params: params) |> load()}
+  end
+
+  defp load(%{assigns: %{params: params}} = socket) do
     property_id =
       case Integer.parse(params["inmueble"] || "") do
         {id, ""} -> id
@@ -26,19 +30,31 @@ defmodule CaseoWeb.VisitLive.Index do
 
     visits = Visits.list_visits(socket.assigns.current_scope, property_id: property_id)
 
-    {:noreply,
-     assign(socket,
-       filter_form: to_form(%{"inmueble" => params["inmueble"] || ""}),
-       days: Enum.chunk_by(visits, &NaiveDateTime.to_date(&1.starts_at))
-     )}
+    assign(socket,
+      filter_form: to_form(%{"inmueble" => params["inmueble"] || ""}),
+      days: Enum.chunk_by(visits, &NaiveDateTime.to_date(&1.starts_at))
+    )
   end
 
   @impl true
+  def handle_event("approve", %{"id" => id}, socket),
+    do: set_status(socket, id, "confirmed", "Visita aprobada.")
+
+  def handle_event("reject", %{"id" => id}, socket),
+    do: set_status(socket, id, "cancelled", "Solicitud rechazada.")
+
   def handle_event("filter", %{"inmueble" => ""}, socket),
     do: {:noreply, push_patch(socket, to: ~p"/visitas")}
 
   def handle_event("filter", %{"inmueble" => id}, socket),
     do: {:noreply, push_patch(socket, to: ~p"/visitas?#{[inmueble: id]}")}
+
+  defp set_status(socket, id, status, message) do
+    case Visits.update_visit(socket.assigns.current_scope, id, %{"status" => status}) do
+      {:ok, _visit} -> {:noreply, socket |> put_flash(:info, message) |> load()}
+      {:error, _} -> {:noreply, socket |> put_flash(:error, "Visita no disponible.") |> load()}
+    end
+  end
 
   @weekdays ~w(lunes martes miércoles jueves viernes sábado domingo)
   @months ~w(enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre)

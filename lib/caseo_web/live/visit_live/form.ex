@@ -14,7 +14,8 @@ defmodule CaseoWeb.VisitLive.Form do
            page_title: if(visit.id, do: "Visita", else: "Agendar visita"),
            visit: visit,
            interest: interest,
-           form: to_form(Visits.change_visit(visit))
+           form: to_form(Visits.change_visit(visit)),
+           slots: if(visit.id, do: [], else: Visits.free_slots(socket.assigns.current_scope))
          )}
 
       {:error, :not_found} ->
@@ -64,8 +65,28 @@ defmodule CaseoWeb.VisitLive.Form do
     end
   end
 
+  # Fills the form with one of the owner's free slots.
+  def handle_event("pick_slot", %{"slot" => slot, "minutes" => minutes}, socket) do
+    params =
+      Map.merge(socket.assigns.form.params, %{
+        "starts_at" => String.slice(slot, 0, 16),
+        "duration_minutes" => minutes
+      })
+
+    form = socket.assigns.visit |> Visits.change_visit(params) |> to_form()
+    {:noreply, assign(socket, form: form)}
+  end
+
   def handle_event("cancel_visit", _params, socket) do
     update_status(socket, :cancelled, "Visita cancelada.")
+  end
+
+  def handle_event("approve", _params, socket) do
+    update_status(socket, :confirmed, "Visita aprobada.")
+  end
+
+  def handle_event("reject", _params, socket) do
+    update_status(socket, :cancelled, "Solicitud rechazada.")
   end
 
   def handle_event("mark_visited", _params, socket) do

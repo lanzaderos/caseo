@@ -1,0 +1,135 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:visits}>
+  <section lang="es" class="space-y-6">
+    <header>
+      <.link navigate={~p"/visitas"} class="workspace-muted text-sm hover:underline">
+        <.icon name="hero-arrow-left" class="size-4" /> Agenda
+      </.link>
+      <h1 class="workspace-title mt-2">Disponibilidad</h1>
+      <p class="workspace-muted mt-1 text-sm">
+        Marca a qué horas haces visitas. Los interesados eligen uno de estos huecos desde su enlace de reserva.
+      </p>
+    </header>
+
+    <div class="workspace-glass rounded-2xl p-5 sm:p-8">
+      <h2 class="mb-4 text-lg font-semibold">Añadir franja</h2>
+      <.form
+        for={@form}
+        id="availability-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="grid items-end gap-x-4 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+      >
+        <.input field={@form[:date]} type="date" label="Día" required />
+        <.input field={@form[:from]} type="time" label="Desde" required />
+        <.input field={@form[:to]} type="time" label="Hasta" required />
+        <.input
+          field={@form[:slot_minutes]}
+          type="select"
+          label="Cada visita"
+          options={[
+            {"15 min", 15},
+            {"20 min", 20},
+            {"30 min", 30},
+            {"45 min", 45},
+            {"1 hora", 60}
+          ]}
+        />
+        <div class="mb-2">
+          <button type="submit" class="btn workspace-primary min-h-10 rounded-lg">
+            <.icon name="hero-plus" class="size-4" /> Añadir
+          </button>
+        </div>
+        <div class="flex flex-wrap items-end gap-x-6 sm:col-span-5">
+          <.input field={@form[:weekly]} type="checkbox" label="Repetir cada semana" />
+          <div :if={Phoenix.HTML.Form.normalize_value("checkbox", @form[:weekly].value)}>
+            <.input field={@form[:repeat_until]} type="date" label="Hasta (opcional)" />
+          </div>
+        </div>
+      </.form>
+    </div>
+
+    <section
+      :if={@weekly != []}
+      id="weekly-windows"
+      class="workspace-glass overflow-hidden rounded-2xl"
+    >
+      <h2 class="workspace-divider border-b px-4 py-3 text-sm font-semibold sm:px-6">
+        Cada semana
+      </h2>
+      <ul role="list">
+        <li
+          :for={{window, free, total} <- @weekly}
+          id={"window-#{window.id}"}
+          class="workspace-divider flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 last:border-b-0 sm:px-6"
+        >
+          <p class="tabular-nums text-sm">
+            <strong>
+              {weekly_label(window)} · {hour(window.starts_at)}–{hour(window.ends_at)}
+            </strong>
+            <span class="workspace-muted">
+              · cada {window.slot_minutes} min · desde {short_date(
+                NaiveDateTime.to_date(window.starts_at)
+              )}
+              <span :if={window.repeat_until}>hasta {short_date(window.repeat_until)}</span>
+              · {free} de {total} huecos libres en las próximas 4 semanas
+            </span>
+          </p>
+          <button
+            id={"delete-window-#{window.id}"}
+            type="button"
+            phx-click="delete"
+            phx-value-id={window.id}
+            data-confirm="¿Eliminar esta franja semanal? Las visitas ya reservadas se mantienen."
+            class="btn btn-sm btn-ghost text-error"
+          >
+            Eliminar
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <div
+      :if={@days == [] && @weekly == []}
+      id="availability-empty"
+      class="workspace-glass rounded-2xl px-4 py-12 text-center"
+    >
+      <span class="workspace-marker mx-auto mb-4 grid size-12 place-items-center rounded-xl">
+        <.icon name="hero-clock" class="size-6" />
+      </span>
+      <p class="text-sm font-semibold">Todavía no has marcado horas de visita.</p>
+    </div>
+
+    <section
+      :for={[{first, _, _} | _] = windows <- @days}
+      class="workspace-glass overflow-hidden rounded-2xl"
+    >
+      <h2 class="workspace-divider border-b px-4 py-3 text-sm font-semibold sm:px-6">
+        {day_label(NaiveDateTime.to_date(first.starts_at))}
+      </h2>
+      <ul role="list">
+        <li
+          :for={{window, free, total} <- windows}
+          id={"window-#{window.id}"}
+          class="workspace-divider flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 last:border-b-0 sm:px-6"
+        >
+          <p class="tabular-nums text-sm">
+            <strong>{hour(window.starts_at)}–{hour(window.ends_at)}</strong>
+            <span class="workspace-muted">
+              · cada {window.slot_minutes} min · {free} de {total} huecos libres
+            </span>
+          </p>
+          <button
+            id={"delete-window-#{window.id}"}
+            type="button"
+            phx-click="delete"
+            phx-value-id={window.id}
+            data-confirm="¿Eliminar esta franja? Las visitas ya reservadas se mantienen."
+            class="btn btn-sm btn-ghost text-error"
+          >
+            Eliminar
+          </button>
+        </li>
+      </ul>
+    </section>
+  </section>
+</Layouts.app>

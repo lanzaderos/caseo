@@ -7,6 +7,13 @@
           Tus próximas visitas. Agéndalas desde la ficha de un interesado o de un inmueble.
         </p>
       </div>
+      <.link
+        id="availability-link"
+        navigate={~p"/visitas/disponibilidad"}
+        class="btn btn-ghost workspace-glass min-h-11 rounded-xl sm:ms-auto"
+      >
+        <.icon name="hero-clock" class="size-4" /> Disponibilidad
+      </.link>
       <.form for={@filter_form} id="visit-filter" phx-change="filter" class="w-full sm:w-64">
         <.input
           field={@filter_form[:inmueble]}
@@ -55,7 +62,31 @@
               {place(visit.interest)}
             </p>
           </div>
-          <span class="badge badge-ghost whitespace-nowrap">
+          <div
+            :if={visit.status == :requested}
+            class="flex flex-wrap justify-end gap-1"
+          >
+            <button
+              id={"approve-visit-#{visit.id}"}
+              type="button"
+              phx-click="approve"
+              phx-value-id={visit.id}
+              class="btn btn-sm workspace-primary rounded-lg"
+            >
+              Aprobar
+            </button>
+            <button
+              id={"reject-visit-#{visit.id}"}
+              type="button"
+              phx-click="reject"
+              phx-value-id={visit.id}
+              data-confirm="¿Rechazar esta solicitud de visita?"
+              class="btn btn-sm btn-ghost text-error rounded-lg"
+            >
+              Rechazar
+            </button>
+          </div>
+          <span :if={visit.status != :requested} class="badge badge-ghost whitespace-nowrap">
             {Visit.status_label(visit.status)}
           </span>
         </li>
