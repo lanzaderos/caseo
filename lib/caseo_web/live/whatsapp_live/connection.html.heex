@@ -1,0 +1,87 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:whatsapp}>
+  <section lang="es" class="space-y-6">
+    <header>
+      <h1 class="workspace-title">WhatsApp</h1>
+      <p class="workspace-muted mt-1 text-sm">
+        Vincula tu número para hablar con tus interesados desde Caseo.
+      </p>
+    </header>
+
+    <p
+      :if={@unavailable}
+      id="whatsapp-unavailable"
+      role="alert"
+      class="alert alert-error rounded-2xl text-sm"
+    >
+      El conector de WhatsApp no responde. Revisa que el servicio <code>whatsmeow</code>
+      esté en marcha.
+    </p>
+
+    <div class="workspace-glass space-y-5 rounded-2xl p-5 sm:p-8">
+      <%= cond do %>
+        <% Account.linked?(@account) -> %>
+          <div id="whatsapp-linked" class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="workspace-marker grid size-12 place-items-center rounded-xl">
+                <.icon name="hero-check-circle" class="size-6" />
+              </span>
+              <div>
+                <p class="font-semibold">Número vinculado</p>
+                <p class="workspace-muted tabular-nums text-sm">{@account.phone}</p>
+              </div>
+            </div>
+            <button
+              id="unlink-whatsapp"
+              type="button"
+              phx-click="unlink"
+              data-confirm="¿Desvincular este número? Tus conversaciones guardadas se mantienen."
+              class="btn btn-ghost text-error min-h-11 rounded-xl"
+            >
+              Desvincular
+            </button>
+          </div>
+        <% @linking -> %>
+          <div id="whatsapp-linking" class="grid items-center gap-6 sm:grid-cols-[auto_1fr]">
+            <img
+              id="whatsapp-qr"
+              src={~p"/whatsapp/qr.png?#{[t: @tick]}"}
+              alt="Código QR para vincular WhatsApp"
+              width="240"
+              height="240"
+              class="mx-auto size-60 rounded-xl bg-white p-2"
+            />
+            <ol class="list-decimal space-y-2 ps-5 text-sm">
+              <li>Abre WhatsApp en el móvil del número que quieres usar.</li>
+              <li>Ve a <strong>Dispositivos vinculados → Vincular un dispositivo</strong>.</li>
+              <li>Escanea este código. Se renueva cada pocos segundos.</li>
+            </ol>
+          </div>
+        <% true -> %>
+          <div id="whatsapp-unlinked" class="flex flex-wrap items-center justify-between gap-4">
+            <p class="text-sm">Todavía no has vinculado ningún número.</p>
+            <button
+              id="link-whatsapp"
+              type="button"
+              phx-click="link"
+              phx-disable-with="Preparando…"
+              class="btn workspace-primary min-h-11 rounded-xl px-4"
+            >
+              <.icon name="hero-qr-code" class="size-4" /> Vincular número
+            </button>
+          </div>
+      <% end %>
+
+      <div id="whatsapp-warning" class="alert alert-warning items-start rounded-xl text-sm">
+        <.icon name="hero-exclamation-triangle" class="size-5 shrink-0" />
+        <div class="space-y-1">
+          <p class="font-semibold">El conector de WhatsApp no es oficial.</p>
+          <p>
+            WhatsApp puede bloquear el número vinculado sin aviso, y no hay garantía ni reembolso por ello.
+            Usa un número con antigüedad, no el personal, y escribe solo a quien te haya escrito antes o sea tu interesado.
+            Caseo espacia los envíos y limita cuántos mensajes salen por hora.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layouts.app>

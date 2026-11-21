@@ -59,6 +59,14 @@ if config_env() == :prod do
 
   config :caseo, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
+  if whatsmeow_url = System.get_env("WHATSMEOW_URL") do
+    config :caseo, Caseo.Whatsapp.Whatsmeow,
+      base_url: whatsmeow_url,
+      token:
+        System.get_env("WHATSMEOW_TOKEN") ||
+          raise("environment variable WHATSMEOW_TOKEN is missing")
+  end
+
   config :caseo, CaseoWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [

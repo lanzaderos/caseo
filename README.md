@@ -117,6 +117,20 @@ approval in the agenda.
 property and lead pages show their upcoming visits. Times are stored as local
 wall-clock time (Spain).
 
+## WhatsApp
+
+Each owner links their own WhatsApp number under **WhatsApp → Vincular número**
+by scanning a QR code, as with WhatsApp Web. Caseo talks to WhatsApp through
+the `Caseo.Whatsapp.Provider` behaviour. The first provider is the whatsmeow
+sidecar in `whatsmeow/` (unofficial: WhatsApp may ban the number); each account
+stores its provider, so owners can move to the official Cloud API one by one.
+
+Incoming messages reach `POST /api/whatsapp/:provider` and are stored in
+Caseo's own format. Caseo only sends to people who wrote first or are the
+owner's leads, records whether each sent message is a reply within 24 hours or
+starts the conversation, and the sidecar paces and caps sends per number. See
+the self-hosted guide (`docs/`) for the limits and the sidecar API.
+
 ## Licencia
 
 Caseo se distribuye bajo la [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Si modificas Caseo y lo ofreces como servicio a otras personas, debes publicar el código fuente de tus cambios bajo la misma licencia.

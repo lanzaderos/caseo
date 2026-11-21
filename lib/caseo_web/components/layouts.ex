@@ -38,7 +38,7 @@ defmodule CaseoWeb.Layouts do
   attr :auth, :boolean, default: false, doc: "uses the split authentication layout"
 
   attr :section, :atom,
-    values: [nil, :properties, :leads, :visits, :settings],
+    values: [nil, :properties, :leads, :visits, :whatsapp, :settings],
     default: nil,
     doc: "the active section of the private navigation"
 
@@ -109,6 +109,13 @@ defmodule CaseoWeb.Layouts do
                   Agenda
                 </.workspace_link>
                 <.workspace_link
+                  active={@section == :whatsapp}
+                  href={~p"/whatsapp/vincular"}
+                  icon="hero-chat-bubble-left-right"
+                >
+                  WhatsApp
+                </.workspace_link>
+                <.workspace_link
                   active={@section == :settings}
                   href={~p"/users/settings"}
                   icon="hero-cog-6-tooth"
@@ -120,7 +127,10 @@ defmodule CaseoWeb.Layouts do
             <main class="min-w-0">
               <div class={[
                 "mx-auto",
-                if(@section in [:properties, :leads, :visits], do: "max-w-5xl", else: "max-w-2xl")
+                if(@section in [:properties, :leads, :visits, :whatsapp],
+                  do: "max-w-5xl",
+                  else: "max-w-2xl"
+                )
               ]}>
                 <nav :if={is_nil(@section)} class="mb-8 sm:mb-12" aria-label={gettext("Home")}>
                   <.link
@@ -132,7 +142,7 @@ defmodule CaseoWeb.Layouts do
                 </nav>
                 <div class={[
                   "space-y-6",
-                  @section not in [:properties, :leads, :visits] && "account-content"
+                  @section not in [:properties, :leads, :visits, :whatsapp] && "account-content"
                 ]}>
                   {render_slot(@inner_block)}
                 </div>
