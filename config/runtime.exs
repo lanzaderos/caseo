@@ -53,6 +53,10 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
+  if passkey_rp_id = System.get_env("PASSKEY_RP_ID") do
+    config :caseo, :passkeys, origin: "https://#{host}", rp_id: passkey_rp_id
+  end
+
   config :caseo, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :caseo, CaseoWeb.Endpoint,

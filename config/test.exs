@@ -1,5 +1,7 @@
 import Config
 
+config :caseo, :passkeys, origin: "http://localhost:4000", rp_id: "localhost"
+
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 

@@ -1,0 +1,65 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section class="mx-auto max-w-xl space-y-6">
+    <.link href={~p"/users/settings"} class="link">Account settings</.link>
+    <.header>
+      Passkeys
+      <:subtitle>Sign in with your device or password manager.</:subtitle>
+    </.header>
+
+    <.form
+      for={@form}
+      id="add-passkey"
+      action={~p"/users/settings/passkeys"}
+      data-passkey="register"
+      data-options={~p"/users/settings/passkeys/options"}
+      class="rounded-xl border border-base-300 p-4"
+    >
+      <.input
+        id="new-passkey-name"
+        field={@form[:name]}
+        label="Passkey name"
+        placeholder="e.g. My laptop"
+        maxlength="80"
+        required
+      />
+      <.button disabled data-passkey-submit variant="primary">Add passkey</.button>
+      <p data-passkey-status class="mt-2 text-sm text-error" role="status"></p>
+    </.form>
+
+    <p :if={@passkeys == []} id="empty-passkeys" class="text-sm">
+      You haven’t added any passkeys yet.
+    </p>
+
+    <ul id="passkeys" class="space-y-4">
+      <%= for passkey <- @passkeys do %>
+        <% form = to_form(%{"name" => passkey.name}) %>
+        <li id={"passkey-#{passkey.id}"} class="rounded-xl border border-base-300 p-4">
+          <.form
+            for={form}
+            id={"rename-passkey-#{passkey.id}"}
+            action={~p"/users/settings/passkeys/#{passkey.id}"}
+            method="patch"
+          >
+            <.input
+              id={"passkey-name-#{passkey.id}"}
+              field={form[:name]}
+              label="Passkey name"
+              maxlength="80"
+              required
+            />
+            <.button>Save name</.button>
+            <.link
+              id={"revoke-passkey-#{passkey.id}"}
+              href={~p"/users/settings/passkeys/#{passkey.id}"}
+              method="delete"
+              data-confirm="Revoke this passkey? It will no longer work to sign in to Caseo."
+              class="btn btn-ghost text-error"
+            >
+              Revoke
+            </.link>
+          </.form>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+</Layouts.app>

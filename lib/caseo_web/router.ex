@@ -56,6 +56,12 @@ defmodule CaseoWeb.Router do
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
 
+    get "/users/settings/passkeys", PasskeyController, :settings
+    post "/users/settings/passkeys/options", PasskeyController, :registration_options
+    post "/users/settings/passkeys", PasskeyController, :register
+    patch "/users/settings/passkeys/:id", PasskeyController, :rename
+    delete "/users/settings/passkeys/:id", PasskeyController, :revoke
+
     get "/users/settings/second-factor", SecondFactorController, :settings
     post "/users/settings/second-factor", SecondFactorController, :enable
     delete "/users/settings/second-factor", SecondFactorController, :disable
@@ -74,6 +80,8 @@ defmodule CaseoWeb.Router do
 
     get "/users/second-factor", SecondFactorController, :challenge
     post "/users/second-factor", SecondFactorController, :verify
+    post "/users/log-in/passkey/options", PasskeyController, :authentication_options
+    post "/users/log-in/passkey", PasskeyController, :authenticate
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
   end

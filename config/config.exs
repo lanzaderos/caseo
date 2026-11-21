@@ -7,7 +7,19 @@
 # General application configuration
 import Config
 
-config :phoenix, :filter_parameters, ["password", "token", "factor_code", "setup_ticket"]
+config :phoenix, :filter_parameters, [
+  "password",
+  "token",
+  "factor_code",
+  "setup_ticket",
+  "challenge",
+  "credentialId",
+  "clientDataJSON",
+  "attestationObject",
+  "authenticatorData",
+  "signature",
+  "userHandle"
+]
 
 config :caseo, :scopes,
   user: [
