@@ -18,6 +18,8 @@ defmodule Caseo.Accounts.Scope do
 
   alias Caseo.Accounts.User
 
+  @type t :: %__MODULE__{user: User.t() | nil}
+
   defstruct user: nil
 
   @doc """

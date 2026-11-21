@@ -1,0 +1,91 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section
+    lang="es"
+    aria-labelledby="property-form-title"
+    class="space-y-6 sm:space-y-8"
+  >
+    <header>
+      <h1 id="property-form-title" class="text-3xl font-semibold tracking-tight">
+        {@page_title}
+      </h1>
+    </header>
+    <.form
+      for={@form}
+      id="property-form"
+      phx-change="validate"
+      phx-submit="save"
+      class="landing-glass-panel overflow-hidden rounded-2xl"
+    >
+      <div class="grid gap-4 px-5 py-6 sm:grid-cols-2 sm:px-8 sm:py-8">
+        <div class="sm:col-span-2">
+          <.input field={@form[:name]} label="Nombre del inmueble" required maxlength="255" />
+        </div>
+        <.input
+          field={@form[:rent]}
+          label="Renta mensual (€)"
+          inputmode="decimal"
+          placeholder="850,00"
+          required
+        />
+        <.input
+          field={@form[:rental_term]}
+          type="select"
+          label="Duración del alquiler"
+          options={[
+            {"Por confirmar", ""},
+            {"Larga duración", :long_term},
+            {"Temporal", :temporary}
+          ]}
+        />
+        <.input
+          field={@form[:available_on]}
+          type="date"
+          label="Disponible desde"
+          required={@form[:rental_term].value in [:temporary, "temporary"]}
+        />
+        <%= if @form[:rental_term].value in [:temporary, "temporary"] do %>
+          <.input field={@form[:available_until]} type="date" label="Disponible hasta" />
+          <.input
+            field={@form[:minimum_months]}
+            type="number"
+            min="1"
+            label="Estancia mínima (meses)"
+          />
+          <.input
+            field={@form[:maximum_months]}
+            type="number"
+            min="1"
+            label="Estancia máxima (meses)"
+          />
+        <% end %>
+        <div class="sm:col-span-2">
+          <.input field={@form[:for_students]} type="checkbox" label="Orientado a estudiantes" />
+        </div>
+        <.input
+          :if={Phoenix.HTML.Form.normalize_value("checkbox", @form[:for_students].value)}
+          field={@form[:academic_year]}
+          label="Curso académico (opcional)"
+          placeholder="2026–2027"
+          maxlength="100"
+        />
+      </div>
+      <div class="border-base-content/15 flex flex-wrap justify-end gap-2 border-t px-5 py-4 sm:px-8">
+        <.link
+          id="cancel-property"
+          navigate={@return_path}
+          class="btn btn-ghost min-h-11 rounded-xl"
+        >
+          Cancelar
+        </.link>
+        <button
+          id="save-property"
+          type="submit"
+          class="btn btn-primary min-h-11 rounded-xl px-4"
+          phx-disable-with="Guardando…"
+        >
+          Guardar inmueble
+        </button>
+      </div>
+    </.form>
+  </section>
+</Layouts.app>
