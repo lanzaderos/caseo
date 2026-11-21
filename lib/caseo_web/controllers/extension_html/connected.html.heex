@@ -1,0 +1,12 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} auth>
+  <section class="mx-auto max-w-md space-y-6">
+    <.header>
+      Extensión conectada
+      <:subtitle>
+        Ya puedes importar anuncios desde la extensión. Esta pestaña se cerrará sola.
+      </:subtitle>
+    </.header>
+    <%!-- Read by the extension; never rendered visibly or placed in a URL. --%>
+    <div id="extension-token" data-token={@token} data-state={@state} hidden></div>
+  </section>
+</Layouts.app>

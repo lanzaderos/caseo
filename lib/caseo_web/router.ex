@@ -23,10 +23,19 @@ defmodule CaseoWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", CaseoWeb do
-  #   pipe_through :api
-  # end
+  pipeline :extension_api do
+    plug :accepts, ["json"]
+    plug CaseoWeb.ExtensionAuth
+  end
+
+  # API used by the browser extension, authenticated with a bearer token.
+  scope "/api/extension", CaseoWeb do
+    pipe_through :extension_api
+
+    get "/me", ExtensionApiController, :me
+    post "/listings", ExtensionApiController, :import_listing
+    delete "/session", ExtensionApiController, :disconnect
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:caseo, :dev_routes) do
@@ -70,6 +79,9 @@ defmodule CaseoWeb.Router do
     post "/users/settings/second-factor", SecondFactorController, :enable
     delete "/users/settings/second-factor", SecondFactorController, :disable
     post "/users/update-password", UserSessionController, :update_password
+
+    get "/extension/connect", ExtensionController, :new
+    post "/extension/connect", ExtensionController, :create
   end
 
   scope "/", CaseoWeb do

@@ -304,6 +304,35 @@ defmodule Caseo.Accounts do
     :ok
   end
 
+  ## Browser extension
+
+  @doc "Generates a token that connects the browser extension to the user's account."
+  @spec generate_extension_token(User.t()) :: String.t()
+  def generate_extension_token(%User{} = user) do
+    {encoded_token, user_token} = UserToken.build_extension_token(user)
+    Repo.insert!(user_token)
+    encoded_token
+  end
+
+  @doc "Returns the user owning a valid extension token, or `nil`."
+  @spec get_user_by_extension_token(term()) :: User.t() | nil
+  def get_user_by_extension_token(token) do
+    case UserToken.verify_extension_token_query(token) do
+      {:ok, query} -> Repo.one(query)
+      :error -> nil
+    end
+  end
+
+  @doc "Revokes an extension token."
+  @spec delete_extension_token(term()) :: :ok
+  def delete_extension_token(token) do
+    with {:ok, query} <- UserToken.extension_token_query(token) do
+      Repo.delete_all(query)
+    end
+
+    :ok
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

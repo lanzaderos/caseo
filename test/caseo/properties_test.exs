@@ -37,6 +37,53 @@ defmodule Caseo.PropertiesTest do
     assert {:error, :not_found} = Properties.archive_property(scope, property.id)
   end
 
+  describe "import_listing/2" do
+    @listing %{
+      "listing_url" => "https://www.idealista.com/en/inmueble/98765/",
+      "name" => "Ático con terraza",
+      "rent" => "950",
+      "location" => "Ruzafa, Valencia",
+      "area_m2" => "60"
+    }
+
+    test "creates a property and updates it on reimport, scoped to the owner" do
+      scope = user_scope_fixture()
+
+      assert {:ok, property, :created} = Properties.import_listing(scope, @listing)
+      assert property.listing_source == "idealista"
+      assert property.listing_external_id == "98765"
+      assert property.listing_url == "https://www.idealista.com/inmueble/98765/"
+      assert property.rent_cents == 95_000
+      assert property.area_m2 == 60
+
+      assert {:ok, updated, :updated} =
+               Properties.import_listing(scope, %{@listing | "rent" => "900"})
+
+      assert updated.id == property.id
+      assert updated.rent_cents == 90_000
+
+      other = user_scope_fixture()
+      assert {:ok, other_property, :created} = Properties.import_listing(other, @listing)
+      refute other_property.id == property.id
+    end
+
+    test "accepts missing optional fields and rejects non-Idealista URLs" do
+      scope = user_scope_fixture()
+      minimal = Map.take(@listing, ["listing_url", "name", "rent"])
+
+      assert {:ok, %{location: nil, area_m2: nil}, :created} =
+               Properties.import_listing(scope, minimal)
+
+      assert {:error, changeset} =
+               Properties.import_listing(scope, %{
+                 @listing
+                 | "listing_url" => "https://www.idealista.com/alquiler-viviendas/"
+               })
+
+      assert %{listing_url: [_]} = errors_on(changeset)
+    end
+  end
+
   test "rejects invalid editable fields" do
     scope = user_scope_fixture()
 
