@@ -1,0 +1,19 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} auth>
+  <section class="mx-auto max-w-md space-y-6">
+    <.header>
+      Conectar la extensión
+      <:subtitle>
+        La extensión de Caseo podrá importar anuncios de Idealista a la cuenta <strong>{@current_scope.user.email}</strong>.
+      </:subtitle>
+    </.header>
+    <.form for={to_form(%{})} id="extension-connect-form" action={~p"/extension/connect"}>
+      <input type="hidden" name="state" value={@state} />
+      <.button id="extension-connect-button" class="btn workspace-primary w-full">
+        Conectar extensión
+      </.button>
+    </.form>
+    <p class="text-sm opacity-70">
+      Si no has abierto esta página desde la extensión de Caseo, cierra la pestaña.
+    </p>
+  </section>
+</Layouts.app>
