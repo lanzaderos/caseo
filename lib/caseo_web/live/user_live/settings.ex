@@ -8,11 +8,11 @@ defmodule CaseoWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app flash={@flash} current_scope={@current_scope} section={:settings}>
       <div class="text-center">
         <.header>
-          Account Settings
-          <:subtitle>Manage your account email address and password settings</:subtitle>
+          Ajustes de la cuenta
+          <:subtitle>Gestiona el correo electrónico y la contraseña de tu cuenta</:subtitle>
         </.header>
       </div>
 
@@ -22,7 +22,7 @@ defmodule CaseoWeb.UserLive.Settings do
         href={~p"/users/settings/passkeys"}
         class="btn btn-ghost landing-glass-panel"
       >
-        <.icon name="hero-key" class="size-5" /> Passkeys
+        <.icon name="hero-key" class="size-5" /> Llaves de acceso
         <.icon name="hero-arrow-right" class="size-4" />
       </.link>
 
@@ -31,7 +31,7 @@ defmodule CaseoWeb.UserLive.Settings do
         href={~p"/users/settings/second-factor"}
         class="btn btn-ghost landing-glass-panel"
       >
-        <.icon name="hero-shield-check" class="size-5" /> Two-factor authentication
+        <.icon name="hero-shield-check" class="size-5" /> Autenticación en dos pasos
         <.icon name="hero-arrow-right" class="size-4" />
       </.link>
 
@@ -39,12 +39,12 @@ defmodule CaseoWeb.UserLive.Settings do
         <.input
           field={@email_form[:email]}
           type="email"
-          label="Email"
+          label="Correo electrónico"
           autocomplete="username"
           spellcheck="false"
           required
         />
-        <.button class="btn btn-neutral" phx-disable-with="Changing...">Change Email</.button>
+        <.button class="btn btn-neutral" phx-disable-with="Cambiando...">Cambiar correo</.button>
       </.form>
 
       <div class="divider" />
@@ -68,7 +68,7 @@ defmodule CaseoWeb.UserLive.Settings do
         <.input
           field={@password_form[:password]}
           type="password"
-          label="New password"
+          label="Nueva contraseña"
           autocomplete="new-password"
           spellcheck="false"
           required
@@ -76,12 +76,12 @@ defmodule CaseoWeb.UserLive.Settings do
         <.input
           field={@password_form[:password_confirmation]}
           type="password"
-          label="Confirm new password"
+          label="Confirma la nueva contraseña"
           autocomplete="new-password"
           spellcheck="false"
         />
-        <.button class="btn btn-neutral" phx-disable-with="Saving...">
-          Save Password
+        <.button class="btn btn-neutral" phx-disable-with="Guardando...">
+          Guardar contraseña
         </.button>
       </.form>
     </Layouts.app>

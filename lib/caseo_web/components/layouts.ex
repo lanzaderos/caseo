@@ -17,7 +17,8 @@ defmodule CaseoWeb.Layouts do
   Wraps page content in the shared full-height gradient and renders flash messages.
 
   The default layout centers account and authentication content and includes
-  a link back to the home page. Pass `wide` for the landing page layout.
+  a link back to the home page. Pass `wide` for the landing page layout or
+  `section` for the private navigation. Pass `auth` for the split sign-in layout.
 
   ## Examples
 
@@ -34,36 +35,118 @@ defmodule CaseoWeb.Layouts do
 
   attr :wide, :boolean, default: false, doc: "uses the wider layout for the landing page"
 
+  attr :auth, :boolean, default: false, doc: "uses the split authentication layout"
+
+  attr :section, :atom,
+    values: [nil, :properties, :settings],
+    default: nil,
+    doc: "the active section of the private navigation"
+
   slot :inner_block, required: true
 
   @spec app(map()) :: Rendered.t()
   def app(assigns) do
     ~H"""
-    <%= if @wide do %>
-      <main class="page-gradient landing-page relative isolate grid min-h-dvh items-center overflow-hidden px-5 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-24">
-        <div class="mx-auto w-full max-w-7xl">
-          {render_slot(@inner_block)}
-        </div>
-      </main>
-    <% else %>
-      <main class="page-gradient min-h-dvh px-5 py-6 sm:px-8 sm:py-10">
-        <div class="mx-auto max-w-2xl">
-          <nav class="mb-8 sm:mb-12" aria-label={gettext("Home")}>
-            <.link
-              href={~p"/"}
-              class="btn btn-ghost landing-glass-panel rounded-full px-4"
-            >
-              <.icon name="hero-arrow-left" class="size-4" /> Caseo
-            </.link>
-          </nav>
-          <div class="account-content space-y-6">
+    <%= cond do %>
+      <% @wide -> %>
+        <main class="page-gradient landing-page relative isolate grid min-h-dvh items-center overflow-hidden px-5 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-24">
+          <div class="mx-auto w-full max-w-7xl">
             {render_slot(@inner_block)}
           </div>
+        </main>
+      <% @auth -> %>
+        <main class="auth-layout grid min-h-[calc(100svh-5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+          <div class="grid min-w-0 place-items-center px-5 py-10 sm:px-10 sm:py-14">
+            <div class="auth-content w-full max-w-sm">
+              {render_slot(@inner_block)}
+            </div>
+          </div>
+          <div
+            aria-hidden="true"
+            class="auth-art relative m-4 hidden overflow-hidden rounded-3xl lg:grid lg:place-items-center"
+          >
+            <div class="auth-window"></div>
+          </div>
+        </main>
+      <% true -> %>
+        <div class={[
+          "page-gradient min-h-dvh px-5 py-6 sm:px-8 sm:py-10",
+          @section && "workspace"
+        ]}>
+          <div class={[
+            "mx-auto",
+            if(@section,
+              do: "max-w-7xl lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-8 xl:gap-12",
+              else: "max-w-2xl"
+            )
+          ]}>
+            <aside :if={@section} class="hidden lg:block">
+              <nav
+                id="workspace-navigation"
+                lang="es"
+                aria-label="Área privada"
+                class="workspace-glass sticky top-6 grid gap-1 rounded-2xl p-2"
+              >
+                <.workspace_link
+                  active={@section == :properties}
+                  href={~p"/inmuebles"}
+                  icon="hero-home-modern"
+                >
+                  Inmuebles
+                </.workspace_link>
+                <.workspace_link
+                  active={@section == :settings}
+                  href={~p"/users/settings"}
+                  icon="hero-cog-6-tooth"
+                >
+                  Ajustes
+                </.workspace_link>
+              </nav>
+            </aside>
+            <main class="min-w-0">
+              <div class={["mx-auto", if(@section == :properties, do: "max-w-5xl", else: "max-w-2xl")]}>
+                <nav :if={is_nil(@section)} class="mb-8 sm:mb-12" aria-label={gettext("Home")}>
+                  <.link
+                    href={~p"/"}
+                    class="btn btn-ghost landing-glass-panel rounded-full px-4"
+                  >
+                    <.icon name="hero-arrow-left" class="size-4" /> Caseo
+                  </.link>
+                </nav>
+                <div class={["space-y-6", @section != :properties && "account-content"]}>
+                  {render_slot(@inner_block)}
+                </div>
+              </div>
+            </main>
+          </div>
         </div>
-      </main>
     <% end %>
 
     <.flash_group flash={@flash} />
+    """
+  end
+
+  attr :active, :boolean, required: true
+  attr :href, :string, required: true
+  attr :icon, :string, required: true
+  slot :inner_block, required: true
+
+  defp workspace_link(assigns) do
+    ~H"""
+    <.link
+      navigate={@href}
+      aria-current={if(@active, do: "location")}
+      class={[
+        "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
+        if(@active,
+          do: "bg-base-content/10 text-base-content",
+          else: "text-base-content/80 hover:bg-base-content/5"
+        )
+      ]}
+    >
+      <.icon name={@icon} class="size-5 shrink-0" />
+      {render_slot(@inner_block)}
+    </.link>
     """
   end
 

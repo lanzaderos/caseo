@@ -1,4 +1,4 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
+<Layouts.app flash={@flash} current_scope={@current_scope} auth>
   <section class="mx-auto max-w-md space-y-6">
     <.header>
       Verify your sign-in
@@ -16,7 +16,7 @@
         maxlength="24"
         required
       />
-      <.button class="btn btn-neutral">Verify</.button>
+      <.button class="btn workspace-primary">Verify</.button>
     </.form>
     <.link href={~p"/users/log-out"} method="delete" class="link">Cancel sign-in</.link>
   </section>

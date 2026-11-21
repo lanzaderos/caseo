@@ -23,11 +23,18 @@
         <div class="mt-8 flex flex-wrap items-center gap-3">
           <%= if @current_scope do %>
             <.link
-              id="landing-settings"
-              href={~p"/users/settings"}
+              id="landing-properties"
+              href={~p"/inmuebles"}
               class="btn btn-neutral min-h-12 rounded-full px-6"
             >
-              Ajustes de la cuenta <.icon name="hero-arrow-right" class="size-4" />
+              Ir a Inmuebles <.icon name="hero-arrow-right" class="size-4" />
+            </.link>
+            <.link
+              id="landing-settings"
+              href={~p"/users/settings"}
+              class="btn btn-ghost landing-glass-panel min-h-12 rounded-full px-6"
+            >
+              Ajustes de la cuenta
             </.link>
           <% else %>
             <.link

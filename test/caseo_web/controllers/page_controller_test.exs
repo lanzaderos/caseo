@@ -11,9 +11,15 @@ defmodule CaseoWeb.PageControllerTest do
              [~p"/users/log-in"]
   end
 
-  test "signed-in landing links to account settings", context do
+  test "signed-in landing links to properties and account settings", context do
     %{conn: conn} = register_and_log_in_user(context)
     document = conn |> get(~p"/") |> html_response(200) |> LazyHTML.from_document()
+
+    assert document |> LazyHTML.query("#landing-properties") |> LazyHTML.attribute("href") ==
+             [~p"/inmuebles"]
+
+    assert document |> LazyHTML.query("#header-properties") |> LazyHTML.attribute("href") ==
+             [~p"/inmuebles"]
 
     assert document |> LazyHTML.query("#landing-settings") |> LazyHTML.attribute("href") ==
              [~p"/users/settings"]

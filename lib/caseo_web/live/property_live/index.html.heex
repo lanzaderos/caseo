@@ -1,26 +1,26 @@
-<Layouts.app flash={@flash} current_scope={@current_scope}>
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:properties}>
   <section lang="es" aria-labelledby="properties-title" class="space-y-6 sm:space-y-8">
     <header class="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
-      <h1 id="properties-title" class="text-3xl font-semibold tracking-tight">Inmuebles</h1>
+      <h1 id="properties-title" class="workspace-title">Inmuebles</h1>
       <.link
         id="new-property"
         navigate={~p"/inmuebles/nuevo"}
-        class="btn btn-primary min-h-11 rounded-xl px-4"
+        class="btn workspace-primary min-h-11 rounded-xl px-4"
       >
         <.icon name="hero-plus" class="size-4" /> Nuevo inmueble
       </.link>
     </header>
 
-    <div class="landing-glass-panel overflow-hidden rounded-2xl">
+    <div class="workspace-glass overflow-hidden rounded-2xl">
       <nav
         aria-label="Estado de los inmuebles"
-        class="border-base-content/15 flex gap-6 border-b px-4 sm:px-6"
+        class="workspace-divider flex gap-6 border-b px-4 sm:px-6"
       >
         <.link
           id="active-properties"
           patch={~p"/inmuebles"}
           aria-current={if(@status == :active, do: "page")}
-          class="rounded-sm px-1 py-3 text-sm font-medium hover:underline aria-[current=page]:text-primary aria-[current=page]:underline"
+          class="workspace-tab"
         >
           Activos
         </.link>
@@ -28,7 +28,7 @@
           id="archived-properties"
           patch={~p"/inmuebles?estado=archivados"}
           aria-current={if(@status == :archived, do: "page")}
-          class="rounded-sm px-1 py-3 text-sm font-medium hover:underline aria-[current=page]:text-primary aria-[current=page]:underline"
+          class="workspace-tab"
         >
           Archivados
         </.link>
@@ -39,7 +39,7 @@
           id="properties-empty"
           class="hidden px-4 py-12 text-center only:block sm:px-6 sm:py-16"
         >
-          <span class="bg-primary/10 text-primary mx-auto mb-4 grid size-12 place-items-center rounded-xl">
+          <span class="workspace-marker mx-auto mb-4 grid size-12 place-items-center rounded-xl">
             <.icon name="hero-home-modern" class="size-6" />
           </span>
           <p class="text-sm font-semibold">
@@ -52,15 +52,15 @@
         <li
           :for={{id, property} <- @streams.properties}
           id={id}
-          class="border-base-content/15 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 border-b px-4 py-5 last:border-b-0 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(7rem,0.55fr)_minmax(8rem,0.65fr)_auto] md:items-center"
+          class="workspace-divider grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 border-b px-4 py-5 last:border-b-0 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(7rem,0.55fr)_minmax(8rem,0.65fr)_auto] md:items-center"
         >
           <div class="col-span-2 flex min-w-0 items-center gap-3 md:col-span-1">
-            <span class="bg-primary/10 text-primary grid size-10 shrink-0 place-items-center rounded-xl">
+            <span class="workspace-marker grid size-10 shrink-0 place-items-center rounded-xl">
               <.icon name="hero-home-modern" class="size-5" />
             </span>
             <div class="min-w-0">
               <h2 class="[overflow-wrap:anywhere] text-base font-semibold">{property.name}</h2>
-              <div class="flex flex-wrap gap-x-2 text-sm text-base-content/70">
+              <div class="flex flex-wrap gap-x-2 text-sm workspace-muted">
                 <span :if={property.rental_term == :temporary}>Temporal</span>
                 <span :if={property.for_students}>Para estudiantes</span>
               </div>
@@ -69,9 +69,9 @@
 
           <p class="text-sm tabular-nums">
             <strong class="font-semibold">{Property.formatted_rent(property)} €</strong>
-            <span class="text-base-content/70 block text-xs">al mes</span>
+            <span class="workspace-muted block text-xs">al mes</span>
           </p>
-          <p class="text-base-content/70 text-right text-sm md:text-left">
+          <p class="workspace-muted text-right text-sm md:text-left">
             <%= if property.available_on do %>
               <span class="block text-xs">Disponible desde</span>
               <time datetime={Date.to_iso8601(property.available_on)} class="tabular-nums">
@@ -93,7 +93,7 @@
               :if={is_nil(property.archived_at)}
               id={"archive-property-#{property.id}"}
               type="button"
-              class="btn btn-sm btn-ghost text-base-content/70 min-h-10 rounded-lg"
+              class="btn btn-sm btn-ghost workspace-muted min-h-10 rounded-lg"
               phx-click="archive"
               phx-value-id={property.id}
               data-confirm="¿Archivar este inmueble?"

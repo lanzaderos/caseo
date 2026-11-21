@@ -6,7 +6,7 @@ defmodule CaseoWeb.UserLive.Confirmation do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app flash={@flash} current_scope={@current_scope} auth>
       <div class="mx-auto max-w-sm">
         <div class="text-center">
           <.header>Welcome {@user.email}</.header>
@@ -26,13 +26,13 @@ defmodule CaseoWeb.UserLive.Confirmation do
             name={@form[:remember_me].name}
             value="true"
             phx-disable-with="Confirming..."
-            class="btn btn-neutral w-full"
+            class="btn workspace-primary w-full"
           >
             Confirm and stay logged in
           </.button>
           <.button
             phx-disable-with="Confirming..."
-            class="btn btn-ghost landing-glass-panel w-full mt-2"
+            class="btn auth-secondary w-full mt-2"
           >
             Confirm and log in only this time
           </.button>
@@ -49,7 +49,7 @@ defmodule CaseoWeb.UserLive.Confirmation do
         >
           <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
           <%= if @current_scope do %>
-            <.button phx-disable-with="Logging in..." class="btn btn-neutral w-full">
+            <.button phx-disable-with="Logging in..." class="btn workspace-primary w-full">
               Log in
             </.button>
           <% else %>
@@ -57,13 +57,13 @@ defmodule CaseoWeb.UserLive.Confirmation do
               name={@form[:remember_me].name}
               value="true"
               phx-disable-with="Logging in..."
-              class="btn btn-neutral w-full"
+              class="btn workspace-primary w-full"
             >
               Keep me logged in on this device
             </.button>
             <.button
               phx-disable-with="Logging in..."
-              class="btn btn-ghost landing-glass-panel w-full mt-2"
+              class="btn auth-secondary w-full mt-2"
             >
               Log me in only this time
             </.button>

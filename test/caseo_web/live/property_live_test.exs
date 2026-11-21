@@ -37,6 +37,11 @@ defmodule CaseoWeb.PropertyLiveTest do
 
     assert has_element?(index, "#new-property")
 
+    assert has_element?(
+             index,
+             ~s(#workspace-navigation a[href="/inmuebles"][aria-current="location"])
+           )
+
     {:ok, edit_view, _html} =
       index
       |> element("#edit-property-#{property.id}")
