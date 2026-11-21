@@ -35,6 +35,18 @@ defmodule Caseo.Leads do
     end
   end
 
+  @doc "Fetches the owner's lead with that phone number (any format), with interests."
+  @spec get_lead_by_phone(Scope.t(), String.t()) :: Lead.t() | nil
+  def get_lead_by_phone(scope, phone) do
+    phone = Lead.normalize_phone(phone)
+
+    scope
+    |> owned_leads()
+    |> where([l], l.phone == ^phone)
+    |> Repo.one()
+    |> Repo.preload(interests: [:property, :room])
+  end
+
   @doc "Builds a changeset for the lead form."
   @spec change_lead(Lead.t(), map()) :: Ecto.Changeset.t()
   def change_lead(lead, attrs \\ %{}), do: Lead.changeset(lead, attrs)

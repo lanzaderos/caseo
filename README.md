@@ -131,6 +131,15 @@ owner's leads, records whether each sent message is a reply within 24 hours or
 starts the conversation, and the sidecar paces and caps sends per number. See
 the self-hosted guide (`docs/`) for the limits and the sidecar API.
 
+The **WhatsApp** inbox lists the owner's conversations, updates in real time
+and lets them reply. Each chat is matched to a lead by phone number; a side
+panel shows the lead's properties, requirements and upcoming visits, creates
+the lead if there is none, links properties (suggesting the one whose Idealista
+listing the contact sent) and opens the "Agendar visita" dialog, which sends
+the booking link from the linked number. Message times are shown in the
+viewer's timezone. Only text is shown; photos, audio and documents appear as a
+label.
+
 ## Licencia
 
 Caseo se distribuye bajo la [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Si modificas Caseo y lo ofreces como servicio a otras personas, debes publicar el código fuente de tus cambios bajo la misma licencia.

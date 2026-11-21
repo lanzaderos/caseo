@@ -110,7 +110,7 @@ defmodule CaseoWeb.Layouts do
                 </.workspace_link>
                 <.workspace_link
                   active={@section == :whatsapp}
-                  href={~p"/whatsapp/vincular"}
+                  href={~p"/whatsapp"}
                   icon="hero-chat-bubble-left-right"
                 >
                   WhatsApp
