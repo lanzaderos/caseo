@@ -13,6 +13,8 @@
     "check": "npm run lint && npm run format:check"
   },
   "dependencies": {
+    "accessible-autocomplete": "^3.0.2",
+    "leaflet": "^1.9.4",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {

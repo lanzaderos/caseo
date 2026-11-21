@@ -93,6 +93,16 @@ defmodule CaseoWeb.PropertyLive.Form do
     """
   end
 
+  defp address_errors?(form) do
+    form.source.action in [:insert, :update] &&
+      Enum.any?(
+        [:street, :municipality, :postal_code, :province, :latitude, :longitude],
+        fn field ->
+          form[field].errors != []
+        end
+      )
+  end
+
   defp load_form(socket, property, title) do
     assign(socket,
       page_title: title,

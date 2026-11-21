@@ -25,6 +25,8 @@ defmodule Caseo.Properties.Property do
     field :municipality, :string
     field :postal_code, :string
     field :province, :string
+    field :latitude, :float
+    field :longitude, :float
     field :description, :string
     field :amenities, :string
     field :source_url, :string
@@ -59,12 +61,40 @@ defmodule Caseo.Properties.Property do
     |> validate_length(:source_url, max: 2_048)
     |> validate_change(:source_url, &validate_source/2)
     |> validate_address()
+    |> change_coordinates(attrs)
     |> change_offer(attrs)
   end
 
   @doc "Formats the monthly rent in euros, with a decimal comma."
   @spec formatted_rent(t()) :: String.t() | nil
   def formatted_rent(%__MODULE__{rent_cents: cents}), do: Offer.format_amount(cents)
+
+  defp change_coordinates(changeset, attrs) do
+    changeset = cast(changeset, attrs, [:latitude, :longitude])
+    address_changed? = Enum.any?(@address_fields, &changed?(changeset, &1))
+    coordinates_changed? = changed?(changeset, :latitude) || changed?(changeset, :longitude)
+
+    changeset =
+      if address_changed? && !coordinates_changed? do
+        change(changeset, latitude: nil, longitude: nil)
+      else
+        changeset
+      end
+
+    changeset
+    |> validate_number(:latitude, greater_than_or_equal_to: -90, less_than_or_equal_to: 90)
+    |> validate_number(:longitude, greater_than_or_equal_to: -180, less_than_or_equal_to: 180)
+    |> validate_coordinate_pair()
+  end
+
+  defp validate_coordinate_pair(changeset) do
+    case {get_field(changeset, :latitude), get_field(changeset, :longitude)} do
+      {nil, nil} -> changeset
+      {nil, _} -> add_error(changeset, :latitude, "falta la latitud")
+      {_, nil} -> add_error(changeset, :longitude, "falta la longitud")
+      {_, _} -> validate_required(changeset, @address_fields)
+    end
+  end
 
   defp validate_address(changeset) do
     changeset =

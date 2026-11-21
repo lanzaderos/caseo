@@ -30,22 +30,84 @@
             {"Venta", :sale}
           ]}
         />
-        <div class="sm:col-span-2 workspace-divider border-t pt-4">
-          <h2 class="text-lg font-semibold">Dirección</h2>
-        </div>
-        <div class="sm:col-span-2">
-          <.input field={@form[:street]} label="Vía y número" maxlength="255" />
-        </div>
-        <.input field={@form[:floor]} label="Piso" maxlength="255" />
-        <.input field={@form[:door]} label="Puerta" maxlength="255" />
-        <.input field={@form[:municipality]} label="Municipio" maxlength="255" />
-        <.input
-          field={@form[:postal_code]}
-          label="Código postal"
-          maxlength="255"
-          autocomplete="postal-code"
-        />
-        <.input field={@form[:province]} label="Provincia" maxlength="255" />
+        <section
+          class="sm:col-span-2 workspace-divider space-y-4 border-t pt-4"
+          aria-labelledby="property-address-title"
+        >
+          <h2 id="property-address-title" class="text-lg font-semibold">Dirección</h2>
+          <div
+            id="property-address-search"
+            phx-hook="PropertyAddress"
+            phx-update="ignore"
+            data-search-url={~p"/inmuebles/direcciones"}
+            class="space-y-3"
+          >
+            <label for="property-address-query" class="text-sm font-medium">
+              Buscar dirección
+            </label>
+            <div data-address-autocomplete></div>
+            <p class="workspace-muted text-xs">
+              Busca por calle, número y municipio en España. Datos del IGN · CartoCiudad.
+            </p>
+            <p data-address-status role="status" class="workspace-muted text-sm" hidden></p>
+            <div
+              data-address-map
+              aria-label="Mapa de la dirección seleccionada"
+              role="region"
+              class="property-address-map workspace-divider h-56 w-full rounded-xl border"
+              hidden
+            >
+            </div>
+          </div>
+          <input
+            type="hidden"
+            name={@form[:latitude].name}
+            id={@form[:latitude].id}
+            value={@form[:latitude].value}
+          />
+          <input
+            type="hidden"
+            name={@form[:longitude].name}
+            id={@form[:longitude].id}
+            value={@form[:longitude].value}
+          />
+          <details
+            id="property-address-fields"
+            open={address_errors?(@form)}
+            class="workspace-divider rounded-xl border px-4 py-3"
+          >
+            <summary class="cursor-pointer text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4">
+              Introducir o corregir dirección
+              <span :if={@form[:street].value} class="workspace-muted block pt-1 font-normal">
+                {@form[:street].value}
+                <span :if={@form[:municipality].value}>· {@form[:municipality].value}</span>
+              </span>
+            </summary>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <.input field={@form[:street]} label="Vía y número" maxlength="255" />
+              </div>
+              <.input field={@form[:municipality]} label="Municipio" maxlength="255" />
+              <.input
+                field={@form[:postal_code]}
+                label="Código postal"
+                maxlength="255"
+                autocomplete="postal-code"
+              />
+              <.input field={@form[:province]} label="Provincia" maxlength="255" />
+              <p
+                :for={error <- @form[:latitude].errors ++ @form[:longitude].errors}
+                class="sm:col-span-2 text-error text-sm"
+              >
+                {translate_error(error)}
+              </p>
+            </div>
+          </details>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <.input field={@form[:floor]} label="Piso (opcional)" maxlength="255" />
+            <.input field={@form[:door]} label="Puerta (opcional)" maxlength="255" />
+          </div>
+        </section>
         <div class="sm:col-span-2 workspace-divider border-t pt-4">
           <h2 class="text-lg font-semibold">Descripción y servicios</h2>
         </div>

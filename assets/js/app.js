@@ -25,6 +25,7 @@ import { LiveSocket } from "phoenix_live_view";
 import * as colocated from "phoenix-colocated/caseo";
 import topbar from "../vendor/topbar";
 import { enablePasskeyForm } from "./passkeys";
+import { PropertyAddress } from "./property-address";
 
 const { hooks: colocatedHooks } = colocated;
 const Passkey = {
@@ -39,7 +40,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, Passkey },
+  hooks: { ...colocatedHooks, Passkey, PropertyAddress },
 });
 
 // Show progress bar on live navigation and form submits

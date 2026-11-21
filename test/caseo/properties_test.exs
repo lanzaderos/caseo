@@ -103,6 +103,33 @@ defmodule Caseo.PropertiesTest do
     assert Keyword.has_key?(changeset.errors, :rooms)
   end
 
+  test "keeps coordinates with a selected address and clears them after a manual correction" do
+    scope = user_scope_fixture()
+    location = %{"latitude" => "40.41649", "longitude" => "-3.70615"}
+    attrs = Map.merge(@attrs, location)
+
+    assert {:error, changeset} = Properties.create_property(scope, %{attrs | "latitude" => "91"})
+    assert Keyword.has_key?(changeset.errors, :latitude)
+
+    assert {:error, changeset} = Properties.create_property(scope, Map.delete(attrs, "longitude"))
+    assert Keyword.has_key?(changeset.errors, :longitude)
+
+    assert {:ok, property} = Properties.create_property(scope, attrs)
+    assert {property.latitude, property.longitude} == {40.41649, -3.70615}
+
+    assert {:ok, updated} = Properties.update_property(scope, property.id, %{"floor" => "2"})
+    assert {updated.latitude, updated.longitude} == {40.41649, -3.70615}
+
+    assert {:ok, corrected} =
+             Properties.update_property(
+               scope,
+               property.id,
+               Map.put(location, "street", "Calle Mayor 14")
+             )
+
+    assert {corrected.latitude, corrected.longitude} == {nil, nil}
+  end
+
   test "legacy properties can be edited before capturing an address" do
     scope = user_scope_fixture()
 
