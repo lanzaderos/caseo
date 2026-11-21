@@ -33,6 +33,7 @@ PHX_HOST=caseo.tudominio.com
 | `SECRET_KEY_BASE` | Sí | Clave para firmar cookies y cifrar los secretos de doble factor (TOTP). No la cambies una vez en uso: se cerrarán todas las sesiones y los usuarios con TOTP tendrán que entrar con un código de recuperación y volver a configurarlo. |
 | `POSTGRES_PASSWORD` | Sí | Contraseña de PostgreSQL. Fíjala antes del primer arranque: cambiarla después requiere cambiarla también dentro de la base de datos. |
 | `WHATSMEOW_TOKEN` | Sí | Token compartido entre `core` y el conector de WhatsApp. |
+| `PASSKEY_RP_ID` | No | Dominio de las passkeys. Si está vacío se usa `PHX_HOST`. Cámbialo solo si quieres que las passkeys valgan para un dominio padre (por ejemplo `tudominio.com`); si lo cambias con usuarios dados de alta, tendrán que registrar sus passkeys de nuevo. |
 | `CASEO_VERSION` | No | Tag de las imágenes. Por defecto `latest`. Fija una versión (`1.2.0`) para controlar las actualizaciones. |
 | `CASEO_BIND` / `CASEO_PORT` | No | Dirección y puerto donde escucha `core` en el host. Por defecto `127.0.0.1:4000`. |
 | `WHATSMEOW_WEBHOOK_URL` | No | URL a la que el conector reenvía los mensajes entrantes. |
