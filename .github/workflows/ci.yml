@@ -30,20 +30,20 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: erlef/setup-beam@v1
         with:
           version-file: .tool-versions
           version-type: strict
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .tool-versions
           cache: npm
           cache-dependency-path: assets/package-lock.json
       - name: Cache Dialyzer PLTs
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.mix/dialyxir_*.plt*
@@ -66,7 +66,7 @@ jobs:
     env:
       MIX_ENV: prod
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: erlef/setup-beam@v1
@@ -75,7 +75,7 @@ jobs:
           version-type: strict
       - name: Fetch production dependencies
         run: mix deps.get --only prod --check-locked
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .tool-versions
           cache: npm
@@ -87,7 +87,7 @@ jobs:
           mix release
           tar -czf caseo-linux-x86_64.tar.gz -C _build/prod/rel/caseo .
       - name: Upload production release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: caseo-linux-x86_64-${{ github.sha }}
           path: caseo-linux-x86_64.tar.gz
@@ -110,16 +110,16 @@ jobs:
           - image: ghcr.io/${{ github.repository }}-whatsmeow
             context: whatsmeow
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ matrix.image }}
           # latest y sha en main; 1.2.3 y 1.2 en tags v1.2.3.
@@ -128,7 +128,7 @@ jobs:
             type=sha
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
           push: true
@@ -144,10 +144,10 @@ jobs:
       run:
         working-directory: docs
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .tool-versions
           cache: npm

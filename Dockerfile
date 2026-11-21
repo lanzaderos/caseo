@@ -2,7 +2,7 @@
 # Versiones alineadas con .tool-versions; actualízalas juntas.
 ARG ELIXIR_VERSION=1.20.5
 ARG OTP_VERSION=29.0.6
-ARG UBUNTU_VERSION=noble-20261110
+ARG UBUNTU_VERSION=noble-20261110.1
 
 FROM hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-ubuntu-${UBUNTU_VERSION} AS build
 
