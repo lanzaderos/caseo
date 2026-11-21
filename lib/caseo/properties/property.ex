@@ -38,6 +38,7 @@ defmodule Caseo.Properties.Property do
     field :for_students, :boolean, default: false
     field :academic_year, :string
     field :archived_at, :utc_datetime
+    field :status, Ecto.Enum, values: [:draft, :ready], default: :ready
     field :listing_source, :string
     field :listing_external_id, :string
     field :listing_url, :string
@@ -49,27 +50,6 @@ defmodule Caseo.Properties.Property do
 
   @idealista_url ~r"\Ahttps://www\.idealista\.com/(?:[a-z]{2}/)?inmueble/([0-9]{1,20})/?(?:[?#].*)?\z"
 
-  @doc """
-  Validates a listing imported from a portal. The source and external ID are
-  derived from the URL on the server, never taken from the client.
-  """
-  @spec import_changeset(t(), map()) :: Ecto.Changeset.t()
-  def import_changeset(property, attrs) do
-    property
-    |> cast(attrs, [:name, :listing_url, :location, :area_m2])
-    |> validate_required([:name, :listing_url])
-    |> validate_length(:name, max: 255)
-    |> change_import_mode(attrs)
-    |> change_import_price(attrs)
-    |> change_import_address(attrs)
-    |> validate_length(:listing_url, max: 2048)
-    |> validate_length(:location, max: 255)
-    |> validate_number(:area_m2, greater_than: 0, less_than: 100_000)
-    |> put_listing_identity()
-    |> put_source_url()
-    |> unique_constraint([:owner_id, :listing_source, :listing_external_id])
-  end
-
   @doc "Returns the Idealista listing ID in a listing URL, or `nil`."
   @spec idealista_id(term()) :: String.t() | nil
   def idealista_id(url) when is_binary(url) do
@@ -80,70 +60,6 @@ defmodule Caseo.Properties.Property do
   end
 
   def idealista_id(_url), do: nil
-
-  defp put_listing_identity(changeset) do
-    url = get_field(changeset, :listing_url)
-
-    case idealista_id(url) do
-      nil ->
-        add_error(changeset, :listing_url, "debe ser la ficha de un anuncio de Idealista")
-
-      id ->
-        changeset
-        |> put_change(:listing_source, "idealista")
-        |> put_change(:listing_external_id, id)
-        |> put_change(:listing_url, "https://www.idealista.com/inmueble/#{id}/")
-    end
-  end
-
-  # A new import takes its mode from the price (Idealista shows "€/mes" only for
-  # rentals). Reimports keep the mode chosen by the owner.
-  defp change_import_mode(%{data: %__MODULE__{id: nil}} = changeset, attrs) do
-    if Map.get(attrs, "sale_price") in [nil, ""],
-      do: put_change(changeset, :mode, :rental),
-      else: put_change(changeset, :mode, :sale)
-  end
-
-  defp change_import_mode(changeset, _attrs), do: changeset
-
-  defp change_import_price(changeset, attrs) do
-    case get_field(changeset, :mode) do
-      :rental ->
-        changeset
-        |> put_change(:rent, formatted_rent(changeset.data))
-        |> Offer.change_amount(attrs, :rent, :rent_cents)
-
-      :sale ->
-        changeset
-        |> put_change(:sale_price, Offer.format_amount(changeset.data.sale_price_cents))
-        |> Offer.change_amount(attrs, :sale_price, :sale_price_cents)
-
-      :rooms ->
-        changeset
-    end
-  end
-
-  # The listing prefills the address only while the property has none, so the
-  # owner's address (and its map coordinates) survive reimports. Idealista does
-  # not publish the postal code; the owner completes it in the form.
-  defp change_import_address(changeset, attrs) do
-    if Enum.any?(@address_fields, &Map.get(changeset.data, &1)) do
-      changeset
-    else
-      changeset
-      |> cast(attrs, [:street, :municipality, :province])
-      |> validate_length(:street, max: 255)
-      |> validate_length(:municipality, max: 255)
-      |> validate_length(:province, max: 255)
-    end
-  end
-
-  defp put_source_url(changeset) do
-    case {changeset.data.source_url, get_field(changeset, :listing_url)} do
-      {nil, url} when is_binary(url) -> put_change(changeset, :source_url, url)
-      _ -> changeset
-    end
-  end
 
   @doc "Validates the address, listing details and fields specific to the chosen mode."
   @spec changeset(t(), map()) :: Ecto.Changeset.t()

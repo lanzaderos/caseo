@@ -1,6 +1,7 @@
 import Config
 
 config :caseo, Caseo.Properties.AddressSearch, plug: {Req.Test, Caseo.Properties.AddressSearch}
+config :caseo, Caseo.Properties.ListingImages, plug: {Req.Test, Caseo.Properties.ListingImages}
 
 config :caseo, :passkeys, origin: "http://localhost:4000", rp_id: "localhost"
 

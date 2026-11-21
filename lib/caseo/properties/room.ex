@@ -7,6 +7,8 @@ defmodule Caseo.Properties.Room do
   alias Caseo.Properties.Offer
   alias Caseo.Properties.Property
 
+  @type t :: %__MODULE__{}
+
   schema "rooms" do
     belongs_to :property, Property
     field :name, :string
@@ -20,6 +22,9 @@ defmodule Caseo.Properties.Room do
     field :maximum_months, :integer
     field :for_students, :boolean, default: false
     field :academic_year, :string
+    field :listing_source, :string
+    field :listing_external_id, :string
+    field :listing_url, :string
 
     timestamps(type: :utc_datetime)
   end

@@ -65,6 +65,13 @@
                 </.link>
               </h2>
               <div class="flex flex-wrap gap-x-2 text-sm workspace-muted">
+                <span
+                  :if={property.status == :draft}
+                  id={"draft-#{property.id}"}
+                  class="badge badge-warning badge-soft badge-sm"
+                >
+                  Borrador
+                </span>
                 <span :if={property.rental_term == :temporary}>Temporal</span>
                 <span :if={property.for_students}>Para estudiantes</span>
               </div>

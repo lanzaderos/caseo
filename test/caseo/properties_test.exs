@@ -45,121 +45,15 @@ defmodule Caseo.PropertiesTest do
     assert {:error, :not_found} = Properties.archive_property(scope, property.id)
   end
 
-  describe "import_listing/2" do
-    @listing %{
-      "listing_url" => "https://www.idealista.com/en/inmueble/98765/",
-      "name" => "Ático con terraza",
-      "rent" => "950",
-      "location" => "Ruzafa, Valencia",
-      "area_m2" => "60"
-    }
+  test "marks only the owner's drafts as ready" do
+    scope = user_scope_fixture()
+    {:ok, property} = Properties.create_property(scope, @attrs)
+    property |> Ecto.Changeset.change(status: :draft) |> Caseo.Repo.update!()
 
-    test "creates a property and updates it on reimport, scoped to the owner" do
-      scope = user_scope_fixture()
-
-      assert {:ok, property, :created} = Properties.import_listing(scope, @listing)
-      assert property.listing_source == "idealista"
-      assert property.listing_external_id == "98765"
-      assert property.listing_url == "https://www.idealista.com/inmueble/98765/"
-      assert property.rent_cents == 95_000
-      assert property.area_m2 == 60
-
-      assert {:ok, updated, :updated} =
-               Properties.import_listing(scope, %{@listing | "rent" => "900"})
-
-      assert updated.id == property.id
-      assert updated.rent_cents == 90_000
-
-      other = user_scope_fixture()
-      assert {:ok, other_property, :created} = Properties.import_listing(other, @listing)
-      refute other_property.id == property.id
-    end
-
-    test "reimport preserves the owner's structured address and sale price after a mode change" do
-      scope = user_scope_fixture()
-      assert {:ok, property, :created} = Properties.import_listing(scope, @listing)
-
-      assert {:ok, _property} =
-               Properties.update_property(
-                 scope,
-                 property.id,
-                 Map.merge(@attrs, %{
-                   "mode" => "sale",
-                   "sale_price" => "195000"
-                 })
-               )
-
-      assert {:ok, updated, :updated} =
-               Properties.import_listing(scope, %{@listing | "rent" => "900"})
-
-      assert updated.mode == :sale
-      assert updated.sale_price_cents == 19_500_000
-      assert is_nil(updated.rent_cents)
-      assert updated.street == @attrs["street"]
-      assert updated.postal_code == @attrs["postal_code"]
-    end
-
-    test "imports a sale listing with its address and links the source" do
-      scope = user_scope_fixture()
-
-      sale = %{
-        "listing_url" => "https://www.idealista.com/inmueble/112450146/",
-        "name" => "Piso en venta en Calle del Duque de Sesto",
-        "sale_price" => "1500000",
-        "location" => "Goya, Madrid",
-        "area_m2" => "117",
-        "street" => "Calle del Duque de Sesto",
-        "municipality" => "Madrid",
-        "province" => "Madrid"
-      }
-
-      assert {:ok, property, :created} = Properties.import_listing(scope, sale)
-      assert property.mode == :sale
-      assert property.sale_price_cents == 150_000_000
-      assert is_nil(property.rent_cents)
-      assert property.street == "Calle del Duque de Sesto"
-      assert property.municipality == "Madrid"
-      assert property.province == "Madrid"
-      assert property.source_url == "https://www.idealista.com/inmueble/112450146/"
-
-      assert {:ok, updated, :updated} =
-               Properties.import_listing(scope, %{sale | "sale_price" => "1450000"})
-
-      assert updated.sale_price_cents == 145_000_000
-      assert updated.mode == :sale
-    end
-
-    test "reimport does not overwrite an address the owner already set" do
-      scope = user_scope_fixture()
-      assert {:ok, property, :created} = Properties.import_listing(scope, @listing)
-
-      assert {:ok, _} = Properties.update_property(scope, property.id, @attrs)
-
-      assert {:ok, updated, :updated} =
-               Properties.import_listing(
-                 scope,
-                 Map.merge(@listing, %{"street" => "Otra calle", "municipality" => "Valencia"})
-               )
-
-      assert updated.street == @attrs["street"]
-      assert updated.municipality == @attrs["municipality"]
-    end
-
-    test "accepts missing optional fields and rejects non-Idealista URLs" do
-      scope = user_scope_fixture()
-      minimal = Map.take(@listing, ["listing_url", "name", "rent"])
-
-      assert {:ok, %{location: nil, area_m2: nil}, :created} =
-               Properties.import_listing(scope, minimal)
-
-      assert {:error, changeset} =
-               Properties.import_listing(scope, %{
-                 @listing
-                 | "listing_url" => "https://www.idealista.com/alquiler-viviendas/"
-               })
-
-      assert %{listing_url: [_]} = errors_on(changeset)
-    end
+    assert {:error, :not_found} = Properties.mark_ready(user_scope_fixture(), property.id)
+    assert :ok = Properties.mark_ready(scope, property.id)
+    assert {:ok, %{status: :ready}} = Properties.fetch_property(scope, property.id)
+    assert {:error, :not_found} = Properties.mark_ready(scope, property.id)
   end
 
   test "rejects invalid editable fields" do

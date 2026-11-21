@@ -4,14 +4,15 @@ defmodule CaseoWeb.ExtensionControllerTest do
   import Caseo.AccountsFixtures
 
   alias Caseo.Accounts
+  alias Caseo.Accounts.Scope
+  alias Caseo.Properties.Imports
 
   @state "abcdefghijklmnop1234"
   @listing %{
-    "listing_url" => "https://www.idealista.com/inmueble/123456789/?xtmc=1",
-    "name" => "Piso en calle Mayor",
-    "rent" => "1200",
-    "location" => "Centro, Madrid",
-    "area_m2" => 75
+    "url" => "https://www.idealista.com/inmueble/123456789/?xtmc=1",
+    "title" => "Piso en alquiler en calle Mayor",
+    "price" => "1.200 €/mes",
+    "features" => ["75 m²", "3 hab."]
   }
 
   describe "connect" do
@@ -73,30 +74,24 @@ defmodule CaseoWeb.ExtensionControllerTest do
       assert email == user.email
     end
 
-    test "imports a listing and updates it when imported again", %{api: api} do
-      assert %{"result" => "created", "id" => id, "url" => url} =
-               api |> post(~p"/api/extension/listings", @listing) |> json_response(201)
+    test "stores the listing and returns the preview path", %{api: api, user: user} do
+      assert %{"id" => id, "preview_path" => path} =
+               api |> post(~p"/api/extension/imports", @listing) |> json_response(201)
 
-      assert url =~ "/inmuebles/#{id}/editar"
+      assert path == "/importaciones/#{id}"
 
-      assert %{"result" => "updated", "id" => ^id} =
-               api
-               |> post(~p"/api/extension/listings", %{@listing | "rent" => "1150"})
-               |> json_response(200)
+      assert {:ok, _} =
+               Imports.fetch_pending(Scope.for_user(user), id)
     end
 
-    test "validates the listing on the server", %{api: api} do
-      assert %{"errors" => errors} =
+    test "rejects pages that are not Idealista listings", %{api: api} do
+      assert %{"errors" => %{"url" => [_]}} =
                api
-               |> post(~p"/api/extension/listings", %{
+               |> post(~p"/api/extension/imports", %{
                  @listing
-                 | "listing_url" => "https://example.com/inmueble/1/",
-                   "rent" => ""
+                 | "url" => "https://example.com/inmueble/1/"
                })
                |> json_response(422)
-
-      assert Map.has_key?(errors, "listing_url")
-      assert Map.has_key?(errors, "rent")
     end
 
     test "disconnecting revokes the token", %{api: api, token: token} do
