@@ -14,6 +14,8 @@ services:
       DATABASE_URL: ecto://caseo:${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env}@db/caseo
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?define SECRET_KEY_BASE en .env}
       PHX_HOST: ${PHX_HOST:?define PHX_HOST en .env}
+      # Dominio de las passkeys; por defecto el mismo que PHX_HOST.
+      PASSKEY_RP_ID: ${PASSKEY_RP_ID:-${PHX_HOST}}
       WHATSMEOW_URL: http://whatsmeow:8080
       WHATSMEOW_TOKEN: ${WHATSMEOW_TOKEN:?define WHATSMEOW_TOKEN en .env}
     ports:
