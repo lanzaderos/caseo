@@ -77,6 +77,33 @@
                 Guardar
               </button>
             </div>
+            <fieldset
+              :if={Interest.checklist(item.interest) != []}
+              id={"interest-checks-#{item.id}"}
+              class="sm:col-span-3 mt-2"
+            >
+              <legend class="mb-2 text-sm font-semibold">
+                Requisitos · {Interest.checklist_label(item.interest)}
+              </legend>
+              <div class="grid gap-x-4 gap-y-1 sm:grid-cols-2">
+                <label
+                  :for={{key, label, outcome} <- Interest.checklist(item.interest)}
+                  class="flex items-center justify-between gap-3 text-sm"
+                >
+                  <span class="min-w-0 [overflow-wrap:anywhere]">{label}</span>
+                  <select
+                    id={"interest-#{item.id}-check-#{key}"}
+                    name={"interest[checks][#{key}]"}
+                    class="select select-sm w-32 shrink-0"
+                  >
+                    {Phoenix.HTML.Form.options_for_select(
+                      Interest.check_options(),
+                      check_value(item.form, key, outcome)
+                    )}
+                  </select>
+                </label>
+              </div>
+            </fieldset>
           </.form>
         </li>
       </ul>

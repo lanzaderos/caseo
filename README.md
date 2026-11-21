@@ -74,6 +74,26 @@ new, contacted, visit scheduled, visited, offer, closed, or discarded with a
 reason. The property page groups its leads by status, and the property list
 shows how many leads are still in play. Deleting a lead removes its links.
 
+## Requirements and commission
+
+Each property has requirements and a commission, set in the property form.
+Requirements come from a fixed template (recent payslips, accepted contract
+types, minimum income as a multiple of the rent, guarantor or rent insurance,
+deposit and extra guarantee months, pets, smokers) plus one free-text
+requirement that rejects discriminatory criteria. Rent-based requirements do not
+apply to sales.
+
+Sales charge a percentage of the price or a fixed amount. Rentals charge a
+number of monthly rents, a percentage of the annual rent or a fixed amount, and
+record who pays it (under Ley 12/2023, the landlord pays for a primary
+residence). Either can add 21 % VAT. The property page and the property list
+show the estimated commission; a property rented by rooms adds up its rooms.
+
+A room can override the property's requirements and commission. Every lead
+linked to a property or room gets its requirements as a checklist (met, not
+met, pending), summarized as e.g. "3/4 requisitos" on the property page. Only
+the outcome is stored, never the documents.
+
 ## Licencia
 
 Caseo se distribuye bajo la [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Si modificas Caseo y lo ofreces como servicio a otras personas, debes publicar el código fuente de tus cambios bajo la misma licencia.

@@ -120,7 +120,7 @@ defmodule Caseo.Leads do
     |> owned_interests()
     |> where([i], i.property_id == ^property_id)
     |> order_by([i], asc: i.id)
-    |> preload([:lead, :room])
+    |> preload([:lead, :property, :room])
     |> Repo.all()
   end
 

@@ -4,8 +4,10 @@ defmodule Caseo.Properties.Room do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Caseo.Properties.Commission
   alias Caseo.Properties.Offer
   alias Caseo.Properties.Property
+  alias Caseo.Properties.Requirements
 
   @type t :: %__MODULE__{}
 
@@ -25,6 +27,9 @@ defmodule Caseo.Properties.Room do
     field :listing_source, :string
     field :listing_external_id, :string
     field :listing_url, :string
+    field :custom_terms, :boolean, default: false
+    embeds_one :requirements, Requirements, on_replace: :update, defaults_to_struct: true
+    embeds_one :commission, Commission, on_replace: :update, defaults_to_struct: true
 
     timestamps(type: :utc_datetime)
   end
@@ -37,5 +42,20 @@ defmodule Caseo.Properties.Room do
     |> validate_length(:description, max: 5_000)
     |> Offer.change_amount(attrs, :rent, :rent_cents)
     |> Offer.change_rental(attrs)
+    |> change_terms(attrs)
+  end
+
+  # A room overrides the property's requirements and commission only when the
+  # owner asks for it; otherwise its stored terms are left untouched and unused.
+  defp change_terms(changeset, attrs) do
+    changeset = cast(changeset, attrs, [:custom_terms])
+
+    if get_field(changeset, :custom_terms) do
+      changeset
+      |> cast_embed(:requirements, with: &Requirements.changeset(&1, &2, :rooms))
+      |> cast_embed(:commission, with: &Commission.changeset(&1, &2, :rooms))
+    else
+      changeset
+    end
   end
 end
