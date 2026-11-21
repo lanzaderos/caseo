@@ -9,7 +9,11 @@ defmodule CaseoWeb.ExtensionApiController do
   end
 
   def import_listing(conn, params) do
-    attrs = Map.take(params, ["listing_url", "name", "rent", "location", "area_m2"])
+    attrs =
+      Map.take(
+        params,
+        ~w(listing_url name rent sale_price location area_m2 street municipality province)
+      )
 
     case Properties.import_listing(conn.assigns.current_scope, attrs) do
       {:ok, property, result} ->
