@@ -38,7 +38,7 @@ defmodule CaseoWeb.Layouts do
   attr :auth, :boolean, default: false, doc: "uses the split authentication layout"
 
   attr :section, :atom,
-    values: [nil, :properties, :settings],
+    values: [nil, :properties, :leads, :settings],
     default: nil,
     doc: "the active section of the private navigation"
 
@@ -95,6 +95,13 @@ defmodule CaseoWeb.Layouts do
                   Inmuebles
                 </.workspace_link>
                 <.workspace_link
+                  active={@section == :leads}
+                  href={~p"/interesados"}
+                  icon="hero-user-group"
+                >
+                  Interesados
+                </.workspace_link>
+                <.workspace_link
                   active={@section == :settings}
                   href={~p"/users/settings"}
                   icon="hero-cog-6-tooth"
@@ -104,7 +111,10 @@ defmodule CaseoWeb.Layouts do
               </nav>
             </aside>
             <main class="min-w-0">
-              <div class={["mx-auto", if(@section == :properties, do: "max-w-5xl", else: "max-w-2xl")]}>
+              <div class={[
+                "mx-auto",
+                if(@section in [:properties, :leads], do: "max-w-5xl", else: "max-w-2xl")
+              ]}>
                 <nav :if={is_nil(@section)} class="mb-8 sm:mb-12" aria-label={gettext("Home")}>
                   <.link
                     href={~p"/"}
@@ -113,7 +123,7 @@ defmodule CaseoWeb.Layouts do
                     <.icon name="hero-arrow-left" class="size-4" /> Caseo
                   </.link>
                 </nav>
-                <div class={["space-y-6", @section != :properties && "account-content"]}>
+                <div class={["space-y-6", @section not in [:properties, :leads] && "account-content"]}>
                   {render_slot(@inner_block)}
                 </div>
               </div>

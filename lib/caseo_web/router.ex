@@ -69,6 +69,8 @@ defmodule CaseoWeb.Router do
       live "/inmuebles/:id/editar", PropertyLive.Form, :edit
       live "/inmuebles/:id/habitaciones/:room_id/fotos", PropertyLive.Gallery, :room
       live "/inmuebles/:id", PropertyLive.Gallery, :property
+      live "/interesados", LeadLive.Index, :index
+      live "/interesados/:id", LeadLive.Show, :show
 
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
