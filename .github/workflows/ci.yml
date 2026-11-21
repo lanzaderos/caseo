@@ -12,7 +12,7 @@ permissions:
 jobs:
   checks:
     name: Quality checks
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     services:
       postgres:
@@ -60,7 +60,7 @@ jobs:
     name: Build production release
     needs: checks
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 20
     env:
       MIX_ENV: prod
