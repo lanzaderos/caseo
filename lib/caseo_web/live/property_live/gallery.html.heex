@@ -163,10 +163,47 @@
               <span :if={interest.discard_reason} class="workspace-muted block text-sm">
                 {interest.discard_reason}
               </span>
+              <.link
+                :if={interest.status not in [:closed, :discarded]}
+                id={"property-schedule-visit-#{interest.id}"}
+                navigate={~p"/visitas/nueva?#{[interes: interest.id]}"}
+                class="workspace-muted ms-1 text-sm hover:underline"
+              >
+                Agendar visita
+              </.link>
             </li>
           </ul>
         </div>
       </div>
+    </section>
+
+    <section
+      id="property-visits"
+      class="workspace-glass rounded-2xl p-5 sm:p-8"
+      aria-labelledby="visits-title"
+    >
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="visits-title" class="text-lg font-semibold">Visitas pendientes</h2>
+        <.link
+          navigate={~p"/visitas?#{[inmueble: @property.id]}"}
+          class="btn btn-sm btn-ghost"
+        >
+          Ver en la agenda
+        </.link>
+      </div>
+      <p :if={@visits == []} class="workspace-muted text-sm">No hay visitas pendientes.</p>
+      <ul class="space-y-1 text-sm">
+        <li :for={visit <- @visits} id={"property-visit-#{visit.id}"}>
+          <.link navigate={~p"/visitas/#{visit.id}"} class="font-medium hover:underline">
+            {Calendar.strftime(visit.starts_at, "%d/%m/%Y %H:%M")}
+          </.link>
+          · {visit.interest.lead.name}
+          <span :if={!@room && visit.interest.room} class="workspace-muted">
+            · {visit.interest.room.name}
+          </span>
+          <span class="workspace-muted">· {Visit.status_label(visit.status)}</span>
+        </li>
+      </ul>
     </section>
 
     <section class="workspace-glass rounded-2xl p-5 sm:p-8" aria-labelledby="photo-title">

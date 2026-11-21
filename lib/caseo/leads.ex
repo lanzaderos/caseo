@@ -90,6 +90,17 @@ defmodule Caseo.Leads do
   @spec change_interest(Interest.t(), map()) :: Ecto.Changeset.t()
   def change_interest(interest, attrs \\ %{}), do: Interest.status_changeset(interest, attrs)
 
+  @doc "Fetches an owned interest with its lead, property and room."
+  @spec fetch_interest(Scope.t(), term()) :: {:ok, Interest.t()} | {:error, :not_found}
+  def fetch_interest(scope, id) do
+    with {:ok, id} <- cast_id(id),
+         %Interest{} = interest <- Repo.get(owned_interests(scope), id) do
+      {:ok, Repo.preload(interest, [:lead, :property, :room])}
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
   @doc "Changes the status of an owned interest."
   @spec update_interest(Scope.t(), term(), map()) ::
           {:ok, Interest.t()} | {:error, :not_found | Ecto.Changeset.t()}

@@ -17,7 +17,8 @@ defmodule CaseoWeb.LeadLive.Show do
            page_title: lead.name,
            form: to_form(Leads.change_lead(lead)),
            link_form: to_form(%{"target" => ""}, as: :link),
-           target_options: target_options(socket.assigns.current_scope)
+           target_options: target_options(socket.assigns.current_scope),
+           visits: Caseo.Visits.list_visits(socket.assigns.current_scope, lead_id: lead.id)
          )
          |> stream(:interests, Enum.map(lead.interests, &interest_item/1))}
 

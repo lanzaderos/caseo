@@ -94,6 +94,19 @@ linked to a property or room gets its requirements as a checklist (met, not
 met, pending), summarized as e.g. "3/4 requisitos" on the property page. Only
 the outcome is stored, never the documents.
 
+## Visits
+
+Schedule a visit with **Agendar visita** on a lead's property link, either from
+the lead page or from the property page. A visit has a date and time, a
+duration and notes, and moves a new or contacted lead to "visit scheduled".
+Statuses are scheduled, confirmed, done, no-show and cancelled. Rescheduling
+keeps the previous times in the visit's history. When a visit is done, Caseo
+offers to mark the lead as visited.
+
+**Agenda** lists upcoming visits by day and filters them by property. The
+property and lead pages show their upcoming visits. Times are stored as local
+wall-clock time (Spain).
+
 ## Licencia
 
 Caseo se distribuye bajo la [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Si modificas Caseo y lo ofreces como servicio a otras personas, debes publicar el código fuente de tus cambios bajo la misma licencia.
