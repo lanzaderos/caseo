@@ -207,6 +207,95 @@ defmodule Caseo.Whatsapp do
     end
   end
 
+  ## Inbox
+
+  @doc """
+  Lists the owner's conversations, most recent first, as maps with
+  `:contact_phone`, `:contact_name`, `:last_message` and `:unread`.
+  """
+  @spec list_conversations(Scope.t()) :: [map()]
+  def list_conversations(scope) do
+    case get_account(scope) do
+      nil -> []
+      account -> conversations(account)
+    end
+  end
+
+  defp conversations(account) do
+    last =
+      Repo.all(
+        from m in Message,
+          where: m.account_id == ^account.id,
+          distinct: m.contact_phone,
+          order_by: [asc: m.contact_phone, desc: m.sent_at, desc: m.id]
+      )
+
+    names =
+      Repo.all(
+        from m in Message,
+          where: m.account_id == ^account.id and not is_nil(m.contact_name),
+          distinct: m.contact_phone,
+          order_by: [asc: m.contact_phone, desc: m.sent_at],
+          select: {m.contact_phone, m.contact_name}
+      )
+      |> Map.new()
+
+    unread =
+      Repo.all(
+        from m in Message,
+          where: m.account_id == ^account.id and m.direction == :inbound and is_nil(m.read_at),
+          group_by: m.contact_phone,
+          select: {m.contact_phone, count(m.id)}
+      )
+      |> Map.new()
+
+    last
+    |> Enum.sort_by(&{&1.sent_at, &1.id}, :desc)
+    |> Enum.map(fn message ->
+      %{
+        contact_phone: message.contact_phone,
+        contact_name: names[message.contact_phone],
+        last_message: message,
+        unread: Map.get(unread, message.contact_phone, 0)
+      }
+    end)
+  end
+
+  @doc "Lists the latest messages with `phone`, oldest first."
+  @spec list_messages(Scope.t(), String.t(), pos_integer()) :: [Message.t()]
+  def list_messages(scope, phone, limit \\ 200) do
+    case get_account(scope) do
+      nil ->
+        []
+
+      account ->
+        Repo.all(
+          from m in Message,
+            where: m.account_id == ^account.id and m.contact_phone == ^phone,
+            order_by: [desc: m.sent_at, desc: m.id],
+            limit: ^limit
+        )
+        |> Enum.reverse()
+    end
+  end
+
+  @doc "Marks the incoming messages from `phone` as read."
+  @spec mark_read(Scope.t(), String.t()) :: :ok
+  def mark_read(scope, phone) do
+    with %Account{} = account <- get_account(scope) do
+      Repo.update_all(
+        from(m in Message,
+          where:
+            m.account_id == ^account.id and m.contact_phone == ^phone and
+              m.direction == :inbound and is_nil(m.read_at)
+        ),
+        set: [read_at: DateTime.utc_now(:second)]
+      )
+    end
+
+    :ok
+  end
+
   ## Realtime
 
   @doc "Subscribes the caller to the owner's WhatsApp events."

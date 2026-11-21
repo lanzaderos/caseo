@@ -79,7 +79,9 @@ defmodule CaseoWeb.Router do
       live "/inmuebles/:id", PropertyLive.Gallery, :property
       live "/interesados", LeadLive.Index, :index
       live "/interesados/:id", LeadLive.Show, :show
+      live "/whatsapp", WhatsappLive.Inbox, :index
       live "/whatsapp/vincular", WhatsappLive.Connection, :index
+      live "/whatsapp/:phone", WhatsappLive.Inbox, :show
       live "/visitas", VisitLive.Index, :index
       live "/visitas/nueva", VisitLive.Form, :new
       live "/visitas/disponibilidad", VisitLive.Availability, :index

@@ -11,6 +11,7 @@ defmodule Caseo.Properties do
 
   alias Caseo.Accounts.Scope
   alias Caseo.Properties.Property
+  alias Caseo.Properties.Room
   alias Caseo.Repo
 
   @doc "Lists the owner's active or archived properties."
@@ -98,6 +99,48 @@ defmodule Caseo.Properties do
         {1, _} -> :ok
         {0, _} -> {:error, :not_found}
       end
+    end
+  end
+
+  @idealista_link ~r"https?://(?:www\.|m\.)?idealista\.com/(?:[a-z]{2}/)?inmueble/([0-9]{1,20})"
+
+  @doc """
+  Finds the owner's active property, or room, imported from an Idealista
+  listing linked in `text` (e.g. a lead's WhatsApp message).
+  """
+  @spec find_linked_listing(Scope.t(), String.t()) :: {Property.t(), Room.t() | nil} | nil
+  def find_linked_listing(scope, text) when is_binary(text) do
+    case @idealista_link |> Regex.scan(text, capture: :all_but_first) |> List.flatten() do
+      [] -> nil
+      ids -> find_listing(scope, Enum.uniq(ids))
+    end
+  end
+
+  def find_linked_listing(_scope, _text), do: nil
+
+  defp find_listing(scope, ids) do
+    listed = fn query ->
+      where(query, [x], x.listing_source == "idealista" and x.listing_external_id in ^ids)
+    end
+
+    properties = scope |> owned_properties() |> with_status(:active)
+
+    case properties |> listed.() |> limit(1) |> Repo.one() do
+      %Property{} = property ->
+        {Repo.preload(property, :rooms), nil}
+
+      nil ->
+        query =
+          from r in listed.(Room),
+            join: p in subquery(properties),
+            on: p.id == r.property_id,
+            limit: 1,
+            select: {p, r}
+
+        case Repo.one(query) do
+          {property, room} -> {Repo.preload(property, :rooms), room}
+          nil -> nil
+        end
     end
   end
 

@@ -6,6 +6,8 @@ defmodule CaseoWeb.LeadLive.Show do
   alias Caseo.Leads.Lead
   alias Caseo.Properties
   alias Caseo.Visits
+  alias Caseo.Whatsapp
+  alias Caseo.Whatsapp.Account
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -21,8 +23,7 @@ defmodule CaseoWeb.LeadLive.Show do
            target_options: target_options(socket.assigns.current_scope),
            visits: Visits.list_visits(socket.assigns.current_scope, lead_id: lead.id),
            schedule: nil,
-           booking_url: nil,
-           free_slot_count: 0
+           whatsapp_linked: false
          )
          |> stream(:interests, Enum.map(lead.interests, &interest_item/1))}
 
@@ -66,11 +67,7 @@ defmodule CaseoWeb.LeadLive.Show do
   end
 
   def handle_event("link", %{"link" => %{"target" => target}}, socket) do
-    {property_id, room_id} =
-      case String.split(target, "-", parts: 2) do
-        [property_id, room_id] -> {property_id, room_id}
-        [property_id] -> {property_id, nil}
-      end
+    {property_id, room_id} = parse_target(target)
 
     case Leads.add_interest(scope(socket), socket.assigns.lead.id, property_id, room_id) do
       {:ok, _interest} ->
@@ -119,8 +116,7 @@ defmodule CaseoWeb.LeadLive.Show do
         {:noreply,
          assign(socket,
            schedule: interest,
-           booking_url: nil,
-           free_slot_count: length(Visits.free_slots(scope(socket)))
+           whatsapp_linked: Account.linked?(Whatsapp.get_account(scope(socket)))
          )}
 
       nil ->
@@ -129,23 +125,7 @@ defmodule CaseoWeb.LeadLive.Show do
   end
 
   def handle_event("close_schedule", _params, socket) do
-    {:noreply, assign(socket, schedule: nil, booking_url: nil)}
-  end
-
-  def handle_event("create_booking_link", _params, socket) do
-    case Visits.create_booking_link(scope(socket), socket.assigns.schedule.id) do
-      {:ok, token} -> {:noreply, assign(socket, booking_url: url(~p"/reservar/#{token}"))}
-      {:error, :not_found} -> {:noreply, assign(socket, schedule: nil)}
-    end
-  end
-
-  def handle_event("revoke_booking_link", _params, socket) do
-    Visits.revoke_booking_links(scope(socket), socket.assigns.schedule.id)
-
-    {:noreply,
-     socket
-     |> assign(booking_url: nil)
-     |> put_flash(:info, "Enlace revocado.")}
+    {:noreply, assign(socket, schedule: nil)}
   end
 
   def handle_event("unlink", %{"id" => id}, socket) do
@@ -180,7 +160,10 @@ defmodule CaseoWeb.LeadLive.Show do
     }
   end
 
-  defp target_options(scope) do
+  @doc false
+  # Properties and rooms a lead can be linked to, as select options whose value
+  # is "property_id" or "property_id-room_id". Also used by the WhatsApp inbox.
+  def target_options(scope) do
     scope
     |> Properties.list_properties(:active)
     |> Enum.flat_map(fn property ->
@@ -191,14 +174,12 @@ defmodule CaseoWeb.LeadLive.Show do
     end)
   end
 
-  # Opens WhatsApp (web or app) with the message ready to send.
-  defp whatsapp_url(lead, interest, booking_url) do
-    first_name = lead.name |> String.split() |> List.first()
-
-    text =
-      "Hola #{first_name}, elige cuándo quieres visitar #{place(interest)}: #{booking_url}"
-
-    "https://wa.me/#{String.trim_leading(lead.phone, "+")}?text=#{URI.encode(text, &URI.char_unreserved?/1)}"
+  @doc false
+  def parse_target(target) do
+    case String.split(target, "-", parts: 2) do
+      [property_id, room_id] -> {property_id, room_id}
+      [property_id] -> {property_id, nil}
+    end
   end
 
   # The unsaved choice while editing, else the stored outcome.

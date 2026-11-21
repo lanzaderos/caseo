@@ -28,6 +28,33 @@ import { enablePasskeyForm } from "./passkeys";
 import { PropertyAddress } from "./property-address";
 
 const { hooks: colocatedHooks } = colocated;
+
+// Shows a UTC `datetime` attribute as a time in the viewer's timezone.
+const LocalTime = {
+  mounted() {
+    this.render();
+  },
+  updated() {
+    this.render();
+  },
+  render() {
+    const date = new Date(this.el.getAttribute("datetime"));
+    const today = new Date().toDateString() === date.toDateString();
+    this.el.textContent = today
+      ? date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
+      : date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
+  },
+};
+
+// Keeps a scrollable list pinned to its newest (last) item.
+const ScrollBottom = {
+  mounted() {
+    this.el.scrollTop = this.el.scrollHeight;
+  },
+  updated() {
+    this.el.scrollTop = this.el.scrollHeight;
+  },
+};
 const Passkey = {
   mounted() {
     enablePasskeyForm(this.el);
@@ -40,7 +67,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, Passkey, PropertyAddress },
+  hooks: { ...colocatedHooks, Passkey, PropertyAddress, LocalTime, ScrollBottom },
 });
 
 // Show progress bar on live navigation and form submits
