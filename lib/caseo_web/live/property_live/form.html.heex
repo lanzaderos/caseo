@@ -9,6 +9,87 @@
         {@page_title}
       </h1>
     </header>
+    <section
+      :if={@live_action == :import}
+      id="listing-import"
+      aria-labelledby="listing-import-title"
+      class="workspace-glass space-y-4 rounded-2xl px-5 py-5 sm:px-8"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="space-y-1">
+          <h2 id="listing-import-title" class="text-lg font-semibold">Anuncio de Idealista</h2>
+          <p class="workspace-muted text-sm">
+            Revisa los datos leídos del anuncio, corrige lo necesario y completa lo que falte.
+            Se guardará como borrador.
+          </p>
+          <a
+            id="listing-import-source"
+            href={@listing_import.url}
+            target="_blank"
+            rel="noreferrer"
+            class="link text-sm break-all"
+          >
+            {@listing_import.url}
+          </a>
+        </div>
+        <button
+          id="discard-import"
+          type="button"
+          phx-click="discard"
+          class="btn btn-ghost min-h-11 rounded-xl"
+        >
+          Descartar
+        </button>
+      </div>
+
+      <div
+        :if={@matches.properties != [] or @matches.rooms != []}
+        id="listing-import-matches"
+        role="alert"
+        class="alert alert-warning alert-soft text-sm"
+      >
+        <div class="space-y-1">
+          <p class="font-medium">Ya usaste este anuncio:</p>
+          <ul class="list-disc ps-5">
+            <li :for={property <- @matches.properties}>
+              <.link navigate={~p"/inmuebles/#{property.id}"} class="link">{property.name}</.link>
+            </li>
+            <li :for={room <- @matches.rooms}>
+              <.link navigate={~p"/inmuebles/#{room.property.id}"} class="link">
+                {room.property.name} · {room.name}
+              </.link>
+            </li>
+          </ul>
+          <p>
+            Si creas otro inmueble, el anuncio seguirá vinculado al anterior.
+            También puedes vincularlo a otro registro.
+          </p>
+        </div>
+      </div>
+
+      <form
+        :if={@link_targets != []}
+        id="listing-import-link"
+        phx-submit="link"
+        class="flex flex-wrap items-end gap-2"
+      >
+        <label class="grow space-y-1 text-sm">
+          <span class="font-medium">Vincular a un inmueble o habitación existente</span>
+          <select name="target" class="select w-full" required>
+            <option value="">Elige…</option>
+            <%= for property <- @link_targets do %>
+              <option value={"property:#{property.id}"}>{property.name}</option>
+              <option :for={room <- property.rooms} value={"room:#{room.id}"}>
+                {property.name} · {room.name}
+              </option>
+            <% end %>
+          </select>
+        </label>
+        <button id="link-import" type="submit" class="btn btn-ghost min-h-11 rounded-xl">
+          Vincular
+        </button>
+      </form>
+    </section>
     <.form
       for={@form}
       id="property-form"
@@ -203,6 +284,52 @@
             <.rental_fields form={@form} />
         <% end %>
       </div>
+      <fieldset
+        :if={@live_action == :import and @images != []}
+        id="listing-import-images"
+        class="workspace-divider space-y-4 border-t px-5 py-6 sm:px-8"
+      >
+        <legend class="text-lg font-semibold">Fotos del anuncio</legend>
+        <p class="workspace-muted text-sm">
+          Elige qué fotos incorporar a la galería (máximo 12).
+        </p>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <label
+            :for={{url, index} <- Enum.with_index(@images)}
+            class="workspace-divider relative cursor-pointer overflow-hidden rounded-xl border"
+          >
+            <img
+              src={url}
+              alt={"Foto #{index + 1} del anuncio"}
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              class="aspect-[4/3] w-full object-cover"
+            />
+            <input
+              id={"listing-image-#{index}"}
+              type="checkbox"
+              name="images[]"
+              value={url}
+              checked={url in @selected_images}
+              class="checkbox checkbox-sm absolute top-2 left-2 bg-base-100"
+            />
+          </label>
+        </div>
+        <label class="flex items-start gap-2 text-sm">
+          <input
+            id="reuse-authorized"
+            type="checkbox"
+            name="reuse_authorized"
+            value="true"
+            checked={@reuse_authorized}
+            class="checkbox checkbox-sm mt-0.5"
+          />
+          <span>
+            Confirmo que tengo derecho a reutilizar las fotos marcadas, por ejemplo porque el anuncio es mío.
+          </span>
+        </label>
+        <p :if={@images_error} id="images-error" class="text-error text-sm">{@images_error}</p>
+      </fieldset>
       <div class="workspace-divider flex flex-wrap items-center justify-end gap-2 border-t px-5 py-4 sm:px-8">
         <.link
           :if={@property.id}
@@ -211,7 +338,10 @@
         >
           Ver ficha y fotos
         </.link>
-        <p :if={is_nil(@property.id)} class="workspace-muted me-auto text-sm">
+        <p
+          :if={is_nil(@property.id) and @live_action != :import}
+          class="workspace-muted me-auto text-sm"
+        >
           Podrás añadir fotos desde la ficha después de guardar.
         </p>
         <.link
@@ -227,7 +357,7 @@
           class="btn workspace-primary min-h-11 rounded-xl px-4"
           phx-disable-with="Guardando…"
         >
-          Guardar inmueble
+          {if @live_action == :import, do: "Crear borrador", else: "Guardar inmueble"}
         </button>
       </div>
     </.form>

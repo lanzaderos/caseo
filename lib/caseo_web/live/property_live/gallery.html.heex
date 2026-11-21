@@ -11,10 +11,29 @@
         </.link>
         <h1 id="property-detail-title" class="workspace-title mt-2">{@page_title}</h1>
       </div>
-      <.link navigate={~p"/inmuebles/#{@property.id}/editar"} class="btn workspace-primary">
-        Editar inmueble
-      </.link>
+      <div class="flex flex-wrap gap-2">
+        <button
+          :if={@property.status == :draft and is_nil(@room)}
+          id="mark-ready"
+          type="button"
+          phx-click="mark_ready"
+          class="btn btn-ghost"
+        >
+          Marcar como listo
+        </button>
+        <.link navigate={~p"/inmuebles/#{@property.id}/editar"} class="btn workspace-primary">
+          Editar inmueble
+        </.link>
+      </div>
     </header>
+    <div
+      :if={@property.status == :draft and is_nil(@room)}
+      id="draft-notice"
+      role="status"
+      class="alert alert-warning alert-soft text-sm"
+    >
+      Este inmueble es un borrador. Revisa los datos y las fotos y márcalo como listo cuando quieras usarlo.
+    </div>
 
     <div class="workspace-glass space-y-4 rounded-2xl p-5 sm:p-8">
       <%= if @room do %>

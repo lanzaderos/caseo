@@ -61,6 +61,19 @@ defmodule CaseoWeb.PropertyLive.Gallery do
     {:noreply, cancel_upload(socket, :photo, ref)}
   end
 
+  def handle_event("mark_ready", _params, socket) do
+    case Properties.mark_ready(scope(socket), property_id(socket)) do
+      :ok ->
+        {:noreply,
+         socket
+         |> assign(:property, %{socket.assigns.property | status: :ready})
+         |> put_flash(:info, "Inmueble marcado como listo.")}
+
+      {:error, :not_found} ->
+        {:noreply, socket}
+    end
+  end
+
   def handle_event("cover_photo", %{"id" => id}, socket) do
     result = Photos.set_cover(scope(socket), property_id(socket), room_id(socket), id)
     photo_result(socket, result, "Portada actualizada.")

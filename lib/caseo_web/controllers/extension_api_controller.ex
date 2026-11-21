@@ -2,28 +2,25 @@ defmodule CaseoWeb.ExtensionApiController do
   use CaseoWeb, :controller
 
   alias Caseo.Accounts
-  alias Caseo.Properties
+  alias Caseo.Properties.Imports
 
   def me(conn, _params) do
     json(conn, %{email: conn.assigns.current_scope.user.email})
   end
 
-  def import_listing(conn, params) do
-    attrs =
-      Map.take(
-        params,
-        ~w(listing_url name rent sale_price location area_m2 street municipality province)
-      )
-
-    case Properties.import_listing(conn.assigns.current_scope, attrs) do
-      {:ok, property, result} ->
+  @doc """
+  Stores the raw listing read by the extension and returns the preview path,
+  where the owner reviews it before anything is created. The extension joins
+  the path to the server it is configured for.
+  """
+  def create_import(conn, params) do
+    case Imports.create(conn.assigns.current_scope, params) do
+      {:ok, listing_import} ->
         conn
-        |> put_status(if(result == :created, do: :created, else: :ok))
+        |> put_status(:created)
         |> json(%{
-          id: property.id,
-          result: result,
-          name: property.name,
-          url: url(~p"/inmuebles/#{property.id}/editar")
+          id: listing_import.id,
+          preview_path: ~p"/importaciones/#{listing_import.id}"
         })
 
       {:error, changeset} ->
