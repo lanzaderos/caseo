@@ -37,6 +37,13 @@ defmodule CaseoWeb.Router do
     delete "/session", ExtensionApiController, :disconnect
   end
 
+  # Webhooks of the WhatsApp providers; each one authenticates its own calls.
+  scope "/api/whatsapp", CaseoWeb do
+    pipe_through :api
+
+    post "/:provider", WhatsappWebhookController, :create
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:caseo, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
@@ -60,6 +67,7 @@ defmodule CaseoWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     get "/inmuebles/direcciones", PropertyAddressController, :index
+    get "/whatsapp/qr.png", WhatsappQrController, :show
 
     live_session :require_authenticated_user,
       on_mount: [{CaseoWeb.UserAuth, :require_authenticated}] do
@@ -71,6 +79,7 @@ defmodule CaseoWeb.Router do
       live "/inmuebles/:id", PropertyLive.Gallery, :property
       live "/interesados", LeadLive.Index, :index
       live "/interesados/:id", LeadLive.Show, :show
+      live "/whatsapp/vincular", WhatsappLive.Connection, :index
       live "/visitas", VisitLive.Index, :index
       live "/visitas/nueva", VisitLive.Form, :new
       live "/visitas/disponibilidad", VisitLive.Availability, :index

@@ -48,7 +48,11 @@ services:
       # así una sola copia de seguridad de Postgres cubre todo.
       DATABASE_URL: postgres://caseo:${POSTGRES_PASSWORD}@db:5432/caseo?sslmode=disable
       WHATSMEOW_TOKEN: ${WHATSMEOW_TOKEN}
-      WEBHOOK_URL: ${WHATSMEOW_WEBHOOK_URL:-}
+      # Los mensajes entrantes llegan a core por la red interna de Docker.
+      WEBHOOK_URL: ${WHATSMEOW_WEBHOOK_URL:-http://core:4000/api/whatsapp/whatsmeow}
+      SEND_MAX_PER_HOUR: ${SEND_MAX_PER_HOUR:-60}
+      SEND_DELAY_MIN_MS: ${SEND_DELAY_MIN_MS:-1500}
+      SEND_DELAY_MAX_MS: ${SEND_DELAY_MAX_MS:-4000}
 
 volumes:
   db_data:

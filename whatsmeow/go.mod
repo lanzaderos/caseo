@@ -4,6 +4,7 @@ go 1.27.4
 
 require (
 	github.com/lib/pq v1.12.3
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	go.mau.fi/whatsmeow v0.0.0-20261116172437-19d61352436f
 	google.golang.org/protobuf v1.36.12
 )
