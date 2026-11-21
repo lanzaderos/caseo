@@ -1,5 +1,9 @@
 This is a web application written using the Phoenix web framework.
 
+## References
+
+- Project board / task tracking: https://github.com/orgs/lanzaderos/projects/2/views/1
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
