@@ -16,8 +16,27 @@
           </.link>
         </p>
       </div>
+      <div :if={@visit.status == :requested && @visit.id} class="flex gap-2">
+        <button
+          id="approve-visit"
+          type="button"
+          phx-click="approve"
+          class="btn workspace-primary min-h-11 rounded-xl"
+        >
+          Aprobar
+        </button>
+        <button
+          id="reject-visit"
+          type="button"
+          phx-click="reject"
+          data-confirm="¿Rechazar esta solicitud de visita?"
+          class="btn btn-ghost text-error min-h-11 rounded-xl"
+        >
+          Rechazar
+        </button>
+      </div>
       <button
-        :if={@visit.id && @visit.status != :cancelled}
+        :if={@visit.id && @visit.status not in [:cancelled, :requested]}
         id="cancel-visit"
         type="button"
         phx-click="cancel_visit"
@@ -48,6 +67,23 @@
     </div>
 
     <div class="workspace-glass rounded-2xl p-5 sm:p-8">
+      <div :if={@slots != []} id="visit-slots" class="mb-5">
+        <p class="mb-2 text-sm font-medium">Tus huecos libres</p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            :for={{starts_at, minutes} <- Enum.take(@slots, 12)}
+            id={"pick-slot-#{Calendar.strftime(starts_at, "%Y%m%d%H%M")}"}
+            type="button"
+            phx-click="pick_slot"
+            phx-value-slot={NaiveDateTime.to_iso8601(starts_at)}
+            phx-value-minutes={minutes}
+            class="btn btn-sm btn-outline rounded-lg tabular-nums"
+          >
+            {Calendar.strftime(starts_at, "%d/%m %H:%M")}
+          </button>
+        </div>
+        <p class="workspace-muted mt-2 text-xs">O elige cualquier otra fecha y hora.</p>
+      </div>
       <.form
         for={@form}
         id="visit-form"
