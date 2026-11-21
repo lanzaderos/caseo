@@ -30,7 +30,9 @@ custom classes must fully style the input
 
 - **Always use and maintain this import syntax** in the app.css file for projects generated with `phx.new`
 - **Never** use `@apply` when writing raw css
-- **Always** manually write your own tailwind-based components instead of using daisyUI for a unique, world-class design
+- Use the existing **daisyUI v5** components for standard UI patterns such as buttons, cards, lists, and form controls. Reuse the Phoenix components in `lib/caseo_web/components/core_components.ex` where available.
+- Use Tailwind utilities for layout, responsive behavior, and component variants. Keep reusable visual effects in `assets/css/app.css`.
+- For version-specific daisyUI or Tailwind usage, consult the current documentation with Context7. Use the `find-docs` skill when available.
 - Out of the box **only the app.js and app.css bundles are supported**
   - You cannot reference an external vendor'd script `src` or link `href` in the layouts
   - You must import the vendor deps into app.js and app.css to use them
@@ -38,6 +40,9 @@ custom classes must fully style the input
 
 ### UI/UX & design guidelines
 
+- Use **glassmorphism** as the visual direction for Caseo. Layer translucent surfaces over distinct backgrounds, with backdrop blur, subtle borders, and soft highlights. Use the [21st.dev Liquid Glass collection](https://21st.dev/community/components/explore/liquid-glass-tailwind) as visual inspiration and implement the patterns in HEEx, daisyUI, and CSS.
+- Use glass effects selectively on prominent surfaces and secondary actions. Maintain readable contrast and visible keyboard focus in light and dark modes. Keep translucent surfaces readable when backdrop blur is unavailable.
+- Use the [landing page](lib/caseo_web/controllers/page_html/home.html.heex) and its glass styles in `assets/css/app.css` as the in-repo reference for new screens.
 - **Produce world-class UI designs** with a focus on usability, aesthetics, and modern design principles
 - Implement **subtle micro-interactions** (e.g., button hover effects, and smooth transitions)
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look

@@ -99,3 +99,73 @@
 }
 
 /* This file is for your main application CSS */
+
+.page-gradient {
+  background:
+    radial-gradient(ellipse at 85% 0%, light-dark(#d6c5f7, #423663), transparent 60%),
+    radial-gradient(ellipse at 55% 100%, light-dark(#aabff4, #243d70), transparent 65%),
+    light-dark(#eff4fd, #192536);
+}
+
+.landing-page::before {
+  position: absolute;
+  z-index: -1;
+  top: 7%;
+  right: -12%;
+  width: clamp(20rem, 53vw, 48rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 225deg,
+    light-dark(#70a8e8, #4277ba),
+    light-dark(#e0f4fc, #7191ae),
+    light-dark(#c7b3f1, #65518f),
+    light-dark(#f8e4f6, #a07a9c),
+    light-dark(#70a8e8, #4277ba)
+  );
+  box-shadow: inset 0 0 3rem light-dark(#ffffffc0, #b7cdea55);
+  filter: blur(1rem);
+  opacity: 0.7;
+  content: "";
+  pointer-events: none;
+}
+
+.landing-glass-panel {
+  border: 1px solid light-dark(#ffffffd9, #e4edff55);
+  background: light-dark(#f6faffb8, #202c43d9);
+  box-shadow:
+    inset 0 1px 0 light-dark(#ffffff, #ffffff26),
+    0 18px 45px -25px #152b5c8c;
+  backdrop-filter: blur(22px) saturate(140%);
+}
+
+@media (hover: hover) {
+  .btn.landing-glass-panel:hover {
+    background: light-dark(#ffffffeb, #344263f2);
+  }
+}
+
+.account-content h1 {
+  font-size: clamp(1.65rem, 4vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.account-content h1 + p {
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+.account-content .btn {
+  min-height: 2.75rem;
+  height: auto;
+  padding-block: 0.5rem;
+  border-radius: 9999px;
+  white-space: normal;
+}
+
+.account-content .input {
+  border-radius: 0.75rem;
+  background-color: var(--color-base-100);
+}

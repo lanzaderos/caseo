@@ -16,8 +16,13 @@ defmodule CaseoWeb.UserLive.Settings do
         </.header>
       </div>
 
-      <.link id="second-factor-settings" href={~p"/users/settings/second-factor"} class="link">
-        Two-factor authentication
+      <.link
+        id="second-factor-settings"
+        href={~p"/users/settings/second-factor"}
+        class="btn btn-ghost landing-glass-panel"
+      >
+        <.icon name="hero-shield-check" class="size-5" /> Two-factor authentication
+        <.icon name="hero-arrow-right" class="size-4" />
       </.link>
 
       <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
@@ -29,7 +34,7 @@ defmodule CaseoWeb.UserLive.Settings do
           spellcheck="false"
           required
         />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+        <.button class="btn btn-neutral" phx-disable-with="Changing...">Change Email</.button>
       </.form>
 
       <div class="divider" />
@@ -65,7 +70,7 @@ defmodule CaseoWeb.UserLive.Settings do
           autocomplete="new-password"
           spellcheck="false"
         />
-        <.button variant="primary" phx-disable-with="Saving...">
+        <.button class="btn btn-neutral" phx-disable-with="Saving...">
           Save Password
         </.button>
       </.form>

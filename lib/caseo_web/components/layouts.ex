@@ -31,15 +31,35 @@ defmodule CaseoWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :wide, :boolean, default: false
+
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
-    </main>
+    <%= if @wide do %>
+      <main class="page-gradient landing-page relative isolate grid min-h-dvh items-center overflow-hidden px-5 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-24">
+        <div class="mx-auto w-full max-w-7xl">
+          {render_slot(@inner_block)}
+        </div>
+      </main>
+    <% else %>
+      <main class="page-gradient min-h-dvh px-5 py-6 sm:px-8 sm:py-10">
+        <div class="mx-auto max-w-2xl">
+          <nav class="mb-8 sm:mb-12" aria-label={gettext("Home")}>
+            <.link
+              href={~p"/"}
+              class="btn btn-ghost landing-glass-panel rounded-full px-4"
+            >
+              <.icon name="hero-arrow-left" class="size-4" /> Caseo
+            </.link>
+          </nav>
+          <div class="account-content space-y-6">
+            {render_slot(@inner_block)}
+          </div>
+        </div>
+      </main>
+    <% end %>
 
     <.flash_group flash={@flash} />
     """
