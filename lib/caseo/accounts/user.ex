@@ -19,6 +19,8 @@ defmodule Caseo.Accounts.User do
     timestamps(type: :utc_datetime)
   end
 
+  @type t :: %__MODULE__{}
+
   @doc """
   A user changeset for registering or changing the email.
 

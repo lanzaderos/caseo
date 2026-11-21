@@ -1,5 +1,5 @@
 defmodule Caseo.Accounts.Passkey do
-  @moduledoc false
+  @moduledoc "Ecto schema for a WebAuthn credential owned by a Caseo user."
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -11,6 +11,10 @@ defmodule Caseo.Accounts.Passkey do
     timestamps(type: :utc_datetime)
   end
 
+  @type t :: %__MODULE__{}
+
+  @doc "Trims and validates a passkey name of up to 80 characters."
+  @spec name_changeset(t(), map()) :: Ecto.Changeset.t()
   def name_changeset(passkey, attrs) do
     passkey
     |> cast(attrs, [:name])

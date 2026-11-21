@@ -10,12 +10,28 @@ defmodule Caseo.Accounts.Passkeys do
   @algorithms [-7, -257]
   @invalid {:error, :invalid}
 
+  @typep session_token :: binary() | nil
+  @typep binding :: binary() | nil
+  @typep write_result ::
+           {:ok, Passkey.t()} | {:error, :invalid | :reauthenticate | Ecto.Changeset.t()}
+
+  @doc "Returns whether WebAuthn is configured for this environment."
+  @spec enabled?() :: boolean()
   def enabled?, do: not is_nil(Application.get_env(:caseo, :passkeys))
 
+  @doc "Lists the passkeys owned by the given user ordered by ID."
+  @spec list(User.t()) :: [Passkey.t()]
   def list(%User{id: user_id}) do
     Repo.all(from p in Passkey, where: p.user_id == ^user_id, order_by: [asc: p.id])
   end
 
+  @doc """
+  Issues browser options for enrolling a discoverable passkey with user verification.
+
+  The caller must verify recent authentication before requesting these options.
+  Issuing a challenge replaces the outstanding enrollment challenge for this binding.
+  """
+  @spec registration_options(User.t(), binary()) :: map()
   def registration_options(user, binding) do
     challenge = issue_challenge("register", binding)
 
@@ -29,12 +45,26 @@ defmodule Caseo.Accounts.Passkeys do
     })
   end
 
+  @doc """
+  Issues options for discoverable sign-in with user verification.
+
+  Issuing a challenge replaces the outstanding sign-in challenge for this binding.
+  """
+  @spec authentication_options(binary()) :: map()
   def authentication_options(binding) do
     challenge = issue_challenge("authenticate", binding)
 
     Map.merge(options(challenge), %{rpId: challenge.rp_id, userVerification: @verification})
   end
 
+  @doc """
+  Consumes the enrollment challenge and verifies the WebAuthn response.
+
+  Stores the credential for the owner of the session token after checking that
+  the session was authenticated within the last ten minutes. Returns a changeset
+  for an invalid name or duplicate credential.
+  """
+  @spec register(session_token(), binding(), map()) :: write_result()
   def register(session, binding, params) do
     with {:ok, challenge} <- consume_challenge("register", binding, params),
          {:ok, data} <- decode_field(params, "clientDataJSON", 8192),
@@ -57,6 +87,15 @@ defmodule Caseo.Accounts.Passkeys do
     end
   end
 
+  @doc """
+  Consumes the sign-in challenge and verifies the assertion against a stored credential.
+
+  Pass the current user's ID to restrict reauthentication to that account, or
+  `nil` for a signed-out browser. Success returns the confirmed user and a new
+  session token. User verification satisfies the account's second-factor policy.
+  """
+  @spec authenticate(binding(), pos_integer() | nil, map()) ::
+          {:ok, {User.t(), binary()}} | {:error, :invalid}
   def authenticate(binding, expected_user, params) do
     with {:ok, challenge} <- consume_challenge("authenticate", binding, params),
          {:ok, id} <- decode_field(params, "credentialId", 2048),
@@ -68,6 +107,8 @@ defmodule Caseo.Accounts.Passkeys do
     end
   end
 
+  @doc "Renames an owned passkey after checking that the session was authenticated recently."
+  @spec rename(session_token(), String.t(), map()) :: write_result()
   def rename(session, id, params) do
     with_recent_user(session, fn user ->
       with {:ok, passkey} <- get_owned(user, id) do
@@ -76,6 +117,8 @@ defmodule Caseo.Accounts.Passkeys do
     end)
   end
 
+  @doc "Deletes an owned passkey after checking that the session was authenticated recently."
+  @spec revoke(session_token(), String.t()) :: write_result()
   def revoke(session, id) do
     with_recent_user(session, fn user ->
       with {:ok, passkey} <- get_owned(user, id), do: Repo.delete(passkey)
