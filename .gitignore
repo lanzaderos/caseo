@@ -39,3 +39,6 @@ npm-debug.log
 
 # Self-hosted secrets.
 /.env
+
+# Local Claude Code config and skill links (skills live in .agents/).
+/.claude/
