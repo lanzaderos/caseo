@@ -24,6 +24,9 @@ defmodule Caseo.Properties.Room do
     field :maximum_months, :integer
     field :for_students, :boolean, default: false
     field :academic_year, :string
+    field :listing_source, :string
+    field :listing_external_id, :string
+    field :listing_url, :string
     field :custom_terms, :boolean, default: false
     embeds_one :requirements, Requirements, on_replace: :update, defaults_to_struct: true
     embeds_one :commission, Commission, on_replace: :update, defaults_to_struct: true

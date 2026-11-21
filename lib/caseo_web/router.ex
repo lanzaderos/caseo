@@ -33,7 +33,7 @@ defmodule CaseoWeb.Router do
     pipe_through :extension_api
 
     get "/me", ExtensionApiController, :me
-    post "/listings", ExtensionApiController, :import_listing
+    post "/imports", ExtensionApiController, :create_import
     delete "/session", ExtensionApiController, :disconnect
   end
 
@@ -65,6 +65,7 @@ defmodule CaseoWeb.Router do
       on_mount: [{CaseoWeb.UserAuth, :require_authenticated}] do
       live "/inmuebles", PropertyLive.Index, :index
       live "/inmuebles/nuevo", PropertyLive.Form, :new
+      live "/importaciones/:import_id", PropertyLive.Form, :import
       live "/inmuebles/:id/editar", PropertyLive.Form, :edit
       live "/inmuebles/:id/habitaciones/:room_id/fotos", PropertyLive.Gallery, :room
       live "/inmuebles/:id", PropertyLive.Gallery, :property
