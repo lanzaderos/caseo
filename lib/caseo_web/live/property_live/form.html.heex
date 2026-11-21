@@ -1,0 +1,49 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:properties}>
+  <section
+    lang="es"
+    aria-labelledby="property-form-title"
+    class="space-y-6 sm:space-y-8"
+  >
+    <header>
+      <h1 id="property-form-title" class="workspace-title">{@page_title}</h1>
+    </header>
+    <.form
+      for={@form}
+      id="property-form"
+      phx-change="validate"
+      phx-submit="save"
+      class="workspace-glass overflow-hidden rounded-2xl"
+    >
+      <div class="grid gap-4 px-5 py-6 sm:grid-cols-2 sm:px-8 sm:py-8">
+        <div class="sm:col-span-2">
+          <.input field={@form[:name]} label="Nombre del inmueble" required maxlength="255" />
+        </div>
+        <.input
+          field={@form[:rent]}
+          label="Renta mensual (€)"
+          inputmode="decimal"
+          placeholder="850,00"
+          required
+        />
+        <.input field={@form[:available_on]} type="date" label="Disponible desde (opcional)" />
+      </div>
+      <div class="workspace-divider flex flex-wrap justify-end gap-2 border-t px-5 py-4 sm:px-8">
+        <.link
+          id="cancel-property"
+          navigate={@return_path}
+          class="btn btn-ghost min-h-11 rounded-xl"
+        >
+          Cancelar
+        </.link>
+        <button
+          id="save-property"
+          type="submit"
+          class="btn workspace-primary min-h-11 rounded-xl px-4"
+          phx-disable-with="Guardando…"
+        >
+          Guardar inmueble
+        </button>
+      </div>
+    </.form>
+  </section>
+</Layouts.app>

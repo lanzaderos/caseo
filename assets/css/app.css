@@ -169,3 +169,180 @@
   border-radius: 0.75rem;
   background-color: var(--color-base-100);
 }
+
+.workspace,
+.auth-layout,
+.caseo-notice {
+  --workspace-ink: light-dark(#182d43, #e5edf6);
+  --workspace-muted: light-dark(#4a6076, #adc0d1);
+  --workspace-accent: light-dark(#245580, #a7cff8);
+  --workspace-line: light-dark(#cbd8e5, #40546a);
+  --workspace-tint: light-dark(#e3edf7, #2b445d);
+}
+
+.workspace {
+  color: var(--workspace-ink);
+  background:
+    radial-gradient(ellipse at 60% 0%, light-dark(#d9e8f6, #263e56), transparent 65%),
+    light-dark(#f1f5fa, #172536);
+}
+
+.workspace-glass {
+  border: 1px solid var(--workspace-line);
+  background: light-dark(#f9fcffe6, #223448eb);
+  box-shadow: 0 18px 42px -36px light-dark(#34536c, #000);
+  backdrop-filter: blur(16px);
+}
+
+.workspace-title {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.workspace-muted {
+  color: var(--workspace-muted);
+}
+
+.workspace-divider {
+  border-color: var(--workspace-line);
+}
+
+.workspace-marker,
+.workspace-nav-link[aria-current] {
+  color: var(--workspace-accent);
+  background: var(--workspace-tint);
+}
+
+.workspace-nav-link {
+  color: var(--workspace-muted);
+}
+
+.workspace-nav-link:hover {
+  color: var(--workspace-accent);
+  background: var(--workspace-tint);
+}
+
+.workspace-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  border-bottom: 2px solid transparent;
+  color: var(--workspace-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.workspace-tab:hover,
+.workspace-tab[aria-current] {
+  color: var(--workspace-accent);
+}
+
+.workspace-tab[aria-current] {
+  border-bottom-color: currentColor;
+}
+
+.workspace-primary {
+  --btn-bg: var(--workspace-accent);
+  --btn-fg: light-dark(#fff, #142b42);
+  --btn-border: var(--workspace-accent);
+}
+
+.workspace :is(.workspace-tab, .btn):focus-visible {
+  outline: 2px solid var(--workspace-accent);
+  outline-offset: 2px;
+}
+
+.workspace [id="property-form"] .input {
+  min-height: 2.75rem;
+  border-radius: 0.625rem;
+  background: light-dark(#fff, #192b3d);
+}
+
+.auth-layout {
+  color: var(--workspace-ink);
+  background: light-dark(#f9fbfe, #192737);
+}
+
+.auth-title {
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.auth-content .btn,
+.auth-content .input {
+  min-height: 2.75rem;
+  border-radius: 0.625rem;
+}
+
+.auth-content .input {
+  background: light-dark(#fff, #192b3d);
+}
+
+.auth-secondary {
+  --btn-bg: light-dark(#fff, #24384d);
+  --btn-fg: var(--workspace-ink);
+  --btn-border: var(--workspace-line);
+}
+
+.auth-link {
+  color: var(--workspace-accent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.auth-art {
+  background:
+    radial-gradient(ellipse at 24% 16%, light-dark(#edf0ff, #51547b), transparent 52%),
+    linear-gradient(140deg, light-dark(#c5d8ee, #2e4e6c), light-dark(#8faecb, #182d43));
+}
+
+.auth-window {
+  width: min(52%, 23rem);
+  aspect-ratio: 4 / 5;
+  border: 1px solid #ffffff80;
+  border-radius: 48% 48% 1.25rem 1.25rem / 36% 36% 1.25rem 1.25rem;
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(50% - 0.5px),
+      #ffffff75 50%,
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(
+      transparent 58%,
+      #ffffff75 58%,
+      #ffffff75 calc(58% + 1px),
+      transparent calc(58% + 1px)
+    ),
+    linear-gradient(155deg, #ffffff65, #ffffff12);
+  box-shadow:
+    inset 0 0 0 0.625rem #ffffff14,
+    0 2rem 5rem -2rem #192b3d85;
+}
+
+.caseo-notice {
+  --notice-accent: var(--workspace-accent);
+
+  border: 1px solid var(--workspace-line);
+  border-inline-start: 3px solid var(--notice-accent);
+  color: var(--workspace-ink);
+  background: light-dark(#f9fcfff5, #223448f5);
+  box-shadow: 0 14px 32px -18px #192b3d85;
+  backdrop-filter: blur(16px);
+  overflow-wrap: anywhere;
+}
+
+.caseo-notice[data-kind="error"] {
+  --notice-accent: light-dark(#aa354a, #ff9cae);
+}
+
+.caseo-notice > :first-child {
+  color: var(--notice-accent);
+}

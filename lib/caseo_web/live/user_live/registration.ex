@@ -7,22 +7,22 @@ defmodule CaseoWeb.UserLive.Registration do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            Register for an account
-            <:subtitle>
-              Already registered?
-              <.link navigate={~p"/users/log-in"} class="font-semibold underline underline-offset-4">
-                Log in
-              </.link>
-              to your account now.
-            </:subtitle>
-          </.header>
-        </div>
+    <Layouts.app flash={@flash} current_scope={@current_scope} auth>
+      <section aria-labelledby="registration-title" class="space-y-6">
+        <header class="space-y-2">
+          <h1 id="registration-title" class="auth-title">Register</h1>
+          <p class="workspace-muted text-sm leading-relaxed">
+            We'll send you a link to confirm your email address.
+          </p>
+        </header>
 
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
+        <.form
+          for={@form}
+          id="registration_form"
+          phx-submit="save"
+          phx-change="validate"
+          class="space-y-3"
+        >
           <.input
             field={@form[:email]}
             type="email"
@@ -33,11 +33,15 @@ defmodule CaseoWeb.UserLive.Registration do
             phx-mounted={JS.focus()}
           />
 
-          <.button phx-disable-with="Creating account..." class="btn btn-neutral w-full">
+          <.button phx-disable-with="Creating account..." class="btn workspace-primary w-full">
             Create an account
           </.button>
         </.form>
-      </div>
+
+        <p class="workspace-muted text-sm">
+          Already registered? <.link navigate={~p"/users/log-in"} class="auth-link">Log in</.link>
+        </p>
+      </section>
     </Layouts.app>
     """
   end

@@ -45,6 +45,14 @@
           class="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm"
         >
           <%= if @current_scope do %>
+            <.link
+              id="header-properties"
+              href={~p"/inmuebles"}
+              lang="es"
+              class="rounded-sm py-2 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 lg:hidden"
+            >
+              Inmuebles
+            </.link>
             <span
               class="hidden max-w-56 truncate text-base-content/70 md:inline"
               title={@current_scope.user.email}

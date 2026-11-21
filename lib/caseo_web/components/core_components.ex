@@ -55,25 +55,27 @@ defmodule CaseoWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class="toast toast-top toast-end z-50 max-w-full"
       {@rest}
     >
-      <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
-      ]}>
+      <div
+        class="caseo-notice grid w-[min(24rem,calc(100vw-2rem))] grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-2xl p-4 text-sm leading-relaxed"
+        data-kind={@kind}
+      >
         <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
         <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
         <div>
           <p :if={@title} class="font-semibold">{@title}</p>
           <p>{msg}</p>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
+        <button
+          type="button"
+          phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+          class="btn btn-ghost btn-xs size-7 rounded-md"
+          aria-label={gettext("close")}
+        >
+          <.icon name="hero-x-mark" class="size-4" />
         </button>
       </div>
     </div>
