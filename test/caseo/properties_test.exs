@@ -99,6 +99,52 @@ defmodule Caseo.PropertiesTest do
       assert updated.postal_code == @attrs["postal_code"]
     end
 
+    test "imports a sale listing with its address and links the source" do
+      scope = user_scope_fixture()
+
+      sale = %{
+        "listing_url" => "https://www.idealista.com/inmueble/112450146/",
+        "name" => "Piso en venta en Calle del Duque de Sesto",
+        "sale_price" => "1500000",
+        "location" => "Goya, Madrid",
+        "area_m2" => "117",
+        "street" => "Calle del Duque de Sesto",
+        "municipality" => "Madrid",
+        "province" => "Madrid"
+      }
+
+      assert {:ok, property, :created} = Properties.import_listing(scope, sale)
+      assert property.mode == :sale
+      assert property.sale_price_cents == 150_000_000
+      assert is_nil(property.rent_cents)
+      assert property.street == "Calle del Duque de Sesto"
+      assert property.municipality == "Madrid"
+      assert property.province == "Madrid"
+      assert property.source_url == "https://www.idealista.com/inmueble/112450146/"
+
+      assert {:ok, updated, :updated} =
+               Properties.import_listing(scope, %{sale | "sale_price" => "1450000"})
+
+      assert updated.sale_price_cents == 145_000_000
+      assert updated.mode == :sale
+    end
+
+    test "reimport does not overwrite an address the owner already set" do
+      scope = user_scope_fixture()
+      assert {:ok, property, :created} = Properties.import_listing(scope, @listing)
+
+      assert {:ok, _} = Properties.update_property(scope, property.id, @attrs)
+
+      assert {:ok, updated, :updated} =
+               Properties.import_listing(
+                 scope,
+                 Map.merge(@listing, %{"street" => "Otra calle", "municipality" => "Valencia"})
+               )
+
+      assert updated.street == @attrs["street"]
+      assert updated.municipality == @attrs["municipality"]
+    end
+
     test "accepts missing optional fields and rejects non-Idealista URLs" do
       scope = user_scope_fixture()
       minimal = Map.take(@listing, ["listing_url", "name", "rent"])
