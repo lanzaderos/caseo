@@ -79,6 +79,32 @@
     </section>
 
     <section
+      id="property-terms"
+      class="workspace-glass grid gap-6 rounded-2xl p-5 sm:grid-cols-2 sm:p-8"
+    >
+      <div>
+        <h2 class="mb-2 text-lg font-semibold">Requisitos</h2>
+        <p :if={@requirement_items == []} class="workspace-muted text-sm">Sin requisitos.</p>
+        <ul id="property-requirements" class="space-y-1 text-sm">
+          <li :for={{key, label} <- @requirement_items} id={"requirement-#{key}"}>
+            <.icon name="hero-check-circle" class="size-4" /> {label}
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="mb-2 text-lg font-semibold">Comisión</h2>
+        <p class="text-sm">{commission_label(@commission)}</p>
+        <p
+          :if={@commission_cents}
+          id="property-commission"
+          class="mt-1 font-semibold tabular-nums"
+        >
+          Estimada: {Offer.format_amount(@commission_cents)} €
+        </p>
+      </div>
+    </section>
+
+    <section
       id="property-leads"
       class="workspace-glass rounded-2xl p-5 sm:p-8"
       aria-labelledby="leads-title"
@@ -107,6 +133,13 @@
               </.link>
               <span :if={!@room && interest.room} class="workspace-muted text-sm">
                 · {interest.room.name}
+              </span>
+              <span
+                :if={Interest.checklist_label(interest)}
+                id={"property-interest-#{interest.id}-checks"}
+                class="workspace-muted text-sm tabular-nums"
+              >
+                · {Interest.checklist_label(interest)}
               </span>
               <span :if={interest.discard_reason} class="workspace-muted block text-sm">
                 {interest.discard_reason}

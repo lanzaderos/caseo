@@ -4,9 +4,11 @@ defmodule CaseoWeb.PropertyLive.Gallery do
   alias Caseo.Leads
   alias Caseo.Leads.Interest
   alias Caseo.Properties
+  alias Caseo.Properties.Commission
   alias Caseo.Properties.Offer
   alias Caseo.Properties.Photos
   alias Caseo.Properties.Property
+  alias Caseo.Properties.Requirements
   alias Caseo.Properties.Room
 
   @impl true
@@ -29,6 +31,7 @@ defmodule CaseoWeb.PropertyLive.Gallery do
        socket
        |> assign(property: property, room: room, page_title: (room || property).name)
        |> assign(interest_groups: interest_groups(socket.assigns.current_scope, property, room))
+       |> assign_terms(property, room)
        |> stream(:rooms, property.rooms, reset: true)
        |> load_photos()}
     else
@@ -97,6 +100,33 @@ defmodule CaseoWeb.PropertyLive.Gallery do
       </p>
     </div>
     """
+  end
+
+  defp assign_terms(socket, property, room) do
+    {requirements, commission, price} = Property.terms(property, room)
+
+    assign(socket,
+      requirement_items: Requirements.checklist(requirements, price),
+      commission: commission,
+      commission_cents: Property.estimated_commission(property, room)
+    )
+  end
+
+  defp commission_label(%Commission{kind: nil}), do: "Sin comisión"
+
+  defp commission_label(%Commission{} = c) do
+    value =
+      c.value |> Decimal.normalize() |> Decimal.to_string(:normal) |> String.replace(".", ",")
+
+    base =
+      case c.kind do
+        :percent -> "#{value} %"
+        :months -> "#{value} mensualidades"
+        :fixed -> "#{value} €"
+      end
+
+    payer = %{owner: " · la paga el propietario", tenant: " · la paga el inquilino"}[c.payer]
+    "#{base}#{if c.vat, do: " + IVA"}#{payer}"
   end
 
   # Interests grouped by status, in pipeline order. A room shows only its own.

@@ -4,7 +4,9 @@ defmodule Caseo.Properties.Property do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Caseo.Properties.Commission
   alias Caseo.Properties.Offer
+  alias Caseo.Properties.Requirements
   alias Caseo.Properties.Room
 
   @type t :: %__MODULE__{}
@@ -43,6 +45,8 @@ defmodule Caseo.Properties.Property do
     field :listing_url, :string
     field :location, :string
     field :area_m2, :integer
+    embeds_one :requirements, Requirements, on_replace: :update, defaults_to_struct: true
+    embeds_one :commission, Commission, on_replace: :update, defaults_to_struct: true
 
     timestamps(type: :utc_datetime)
   end
@@ -166,6 +170,46 @@ defmodule Caseo.Properties.Property do
     |> validate_address()
     |> change_coordinates(attrs)
     |> change_offer(attrs)
+    |> change_terms()
+  end
+
+  defp change_terms(changeset) do
+    mode = get_field(changeset, :mode)
+
+    changeset
+    |> cast_embed(:requirements, with: &Requirements.changeset(&1, &2, mode))
+    |> cast_embed(:commission, with: &Commission.changeset(&1, &2, mode))
+  end
+
+  @doc """
+  Returns `{requirements, commission, price_cents}` for the property or one of
+  its rooms. A room uses its own terms only when it overrides the property's.
+  """
+  @spec terms(t(), Room.t() | nil) :: {Requirements.t(), Commission.t(), integer() | nil}
+  def terms(property, room \\ nil)
+  def terms(_p, %Room{custom_terms: true} = r), do: {r.requirements, r.commission, r.rent_cents}
+  def terms(p, %Room{} = r), do: {p.requirements, p.commission, r.rent_cents}
+  def terms(%{mode: :sale} = p, nil), do: {p.requirements, p.commission, p.sale_price_cents}
+  def terms(%{mode: :rental} = p, nil), do: {p.requirements, p.commission, p.rent_cents}
+  def terms(p, nil), do: {p.requirements, p.commission, nil}
+
+  @doc """
+  Estimates the commission in cents. A property rented by rooms adds up the
+  estimate of each room. Returns `nil` when nothing can be estimated.
+  """
+  @spec estimated_commission(t(), Room.t() | nil) :: integer() | nil
+  def estimated_commission(property, room \\ nil)
+
+  def estimated_commission(%__MODULE__{mode: :rooms, rooms: rooms} = property, nil) do
+    case Enum.reject(Enum.map(rooms, &estimated_commission(property, &1)), &is_nil/1) do
+      [] -> nil
+      estimates -> Enum.sum(estimates)
+    end
+  end
+
+  def estimated_commission(property, room) do
+    {_requirements, commission, price} = terms(property, room)
+    Commission.estimate(commission, property.mode, price)
   end
 
   @doc "Formats the monthly rent in euros, with a decimal comma."

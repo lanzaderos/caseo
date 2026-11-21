@@ -92,6 +92,13 @@
                 <strong class="font-semibold">{Property.formatted_rent(property)} €</strong>
                 <span class="workspace-muted block text-xs">al mes</span>
             <% end %>
+            <span
+              :if={Property.estimated_commission(property)}
+              id={"commission-#{property.id}"}
+              class="workspace-muted block text-xs"
+            >
+              Comisión {Offer.format_amount(Property.estimated_commission(property))} €
+            </span>
           </p>
           <p class="workspace-muted text-right text-sm md:text-left">
             <%= cond do %>

@@ -151,6 +151,14 @@ defmodule CaseoWeb.LeadLive.Show do
     end)
   end
 
+  # The unsaved choice while editing, else the stored outcome.
+  defp check_value(form, key, outcome) do
+    case form[:checks].value do
+      %{^key => value} -> value
+      _ -> outcome
+    end
+  end
+
   defp place(%Interest{room: nil, property: property}), do: property.name
   defp place(%Interest{room: room, property: property}), do: "#{property.name} · #{room.name}"
 
