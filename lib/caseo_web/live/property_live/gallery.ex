@@ -10,6 +10,8 @@ defmodule CaseoWeb.PropertyLive.Gallery do
   alias Caseo.Properties.Property
   alias Caseo.Properties.Requirements
   alias Caseo.Properties.Room
+  alias Caseo.Visits
+  alias Caseo.Visits.Visit
 
   @impl true
   def mount(_params, _session, socket) do
@@ -31,6 +33,7 @@ defmodule CaseoWeb.PropertyLive.Gallery do
        socket
        |> assign(property: property, room: room, page_title: (room || property).name)
        |> assign(interest_groups: interest_groups(socket.assigns.current_scope, property, room))
+       |> assign(visits: pending_visits(socket.assigns.current_scope, property, room))
        |> assign_terms(property, room)
        |> stream(:rooms, property.rooms, reset: true)
        |> load_photos()}
@@ -140,6 +143,12 @@ defmodule CaseoWeb.PropertyLive.Gallery do
 
     payer = %{owner: " · la paga el propietario", tenant: " · la paga el inquilino"}[c.payer]
     "#{base}#{if c.vat, do: " + IVA"}#{payer}"
+  end
+
+  defp pending_visits(scope, property, room) do
+    scope
+    |> Visits.list_pending_visits(property.id)
+    |> Enum.filter(&(is_nil(room) || &1.interest.room_id == room.id))
   end
 
   # Interests grouped by status, in pipeline order. A room shows only its own.

@@ -1,0 +1,100 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:visits}>
+  <section lang="es" class="space-y-6">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <.link navigate={~p"/visitas"} class="workspace-muted text-sm hover:underline">
+          <.icon name="hero-arrow-left" class="size-4" /> Agenda
+        </.link>
+        <h1 id="visit-title" class="workspace-title mt-2">{@page_title}</h1>
+        <p class="workspace-muted text-sm">
+          <.link navigate={~p"/interesados/#{@interest.lead_id}"} class="hover:underline">
+            {@interest.lead.name}
+          </.link>
+          ·
+          <.link navigate={~p"/inmuebles/#{@interest.property_id}"} class="hover:underline">
+            {place(@interest)}
+          </.link>
+        </p>
+      </div>
+      <button
+        :if={@visit.id && @visit.status != :cancelled}
+        id="cancel-visit"
+        type="button"
+        phx-click="cancel_visit"
+        data-confirm="¿Cancelar esta visita?"
+        class="btn btn-ghost text-error min-h-11 rounded-xl"
+      >
+        Cancelar visita
+      </button>
+    </header>
+
+    <div
+      :if={suggest_visited?(@visit, @interest)}
+      id="suggest-visited"
+      role="status"
+      class="workspace-glass flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
+    >
+      <p class="text-sm">
+        La visita se ha realizado. ¿Actualizas el estado de {@interest.lead.name} a «Visitado»?
+      </p>
+      <button
+        id="mark-visited"
+        type="button"
+        phx-click="mark_visited"
+        class="btn workspace-primary min-h-10 rounded-lg"
+      >
+        Marcar como visitado
+      </button>
+    </div>
+
+    <div class="workspace-glass rounded-2xl p-5 sm:p-8">
+      <.form
+        for={@form}
+        id="visit-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="grid gap-x-4 sm:grid-cols-2"
+      >
+        <.input field={@form[:starts_at]} type="datetime-local" label="Fecha y hora" required />
+        <.input
+          field={@form[:duration_minutes]}
+          type="number"
+          min="5"
+          max="480"
+          step="5"
+          label="Duración (minutos)"
+          required
+        />
+        <.input
+          :if={@visit.id}
+          field={@form[:status]}
+          type="select"
+          label="Estado"
+          options={Visit.status_options()}
+        />
+        <div class="sm:col-span-2">
+          <.input field={@form[:notes]} type="textarea" label="Notas" />
+        </div>
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn workspace-primary min-h-11 rounded-xl px-4">
+            {if(@visit.id, do: "Guardar cambios", else: "Agendar visita")}
+          </button>
+        </div>
+      </.form>
+    </div>
+
+    <section
+      :if={@visit.reschedules != []}
+      id="visit-history"
+      class="workspace-glass rounded-2xl p-5 sm:p-8"
+    >
+      <h2 class="mb-3 text-lg font-semibold">Historial</h2>
+      <ul class="space-y-1 text-sm">
+        <li :for={change <- Enum.reverse(@visit.reschedules)}>
+          Estaba programada el {format_time(change["from"])}
+          <span class="workspace-muted">· reprogramada el {format_time(change["at"])}</span>
+        </li>
+      </ul>
+    </section>
+  </section>
+</Layouts.app>

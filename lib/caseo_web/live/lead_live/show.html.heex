@@ -40,6 +40,13 @@
             >
               {place(item.interest)}
             </.link>
+            <.link
+              id={"schedule-visit-#{item.id}"}
+              navigate={~p"/visitas/nueva?#{[interes: item.id]}"}
+              class="btn btn-sm btn-ghost ms-auto"
+            >
+              <.icon name="hero-calendar-days" class="size-4" /> Agendar visita
+            </.link>
             <button
               id={"unlink-#{item.id}"}
               type="button"
@@ -130,6 +137,25 @@
           </button>
         </div>
       </.form>
+    </section>
+
+    <section
+      :if={@visits != []}
+      id="lead-visits"
+      class="workspace-glass rounded-2xl p-5 sm:p-8"
+    >
+      <h2 class="mb-3 text-lg font-semibold">Próximas visitas</h2>
+      <ul class="space-y-1 text-sm">
+        <li :for={visit <- @visits} id={"lead-visit-#{visit.id}"}>
+          <.link navigate={~p"/visitas/#{visit.id}"} class="font-medium hover:underline">
+            {Calendar.strftime(visit.starts_at, "%d/%m/%Y %H:%M")}
+          </.link>
+          · {place(visit.interest)}
+          <span class="workspace-muted">
+            · {Caseo.Visits.Visit.status_label(visit.status)}
+          </span>
+        </li>
+      </ul>
     </section>
 
     <div class="workspace-glass rounded-2xl p-5 sm:p-8">

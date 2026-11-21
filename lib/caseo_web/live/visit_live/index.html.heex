@@ -1,0 +1,65 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:visits}>
+  <section lang="es" class="space-y-6">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="workspace-title">Agenda</h1>
+        <p class="workspace-muted mt-1 text-sm">
+          Tus próximas visitas. Agéndalas desde la ficha de un interesado o de un inmueble.
+        </p>
+      </div>
+      <.form for={@filter_form} id="visit-filter" phx-change="filter" class="w-full sm:w-64">
+        <.input
+          field={@filter_form[:inmueble]}
+          type="select"
+          label="Inmueble"
+          prompt="Todos los inmuebles"
+          options={@property_options}
+        />
+      </.form>
+    </header>
+
+    <div
+      :if={@days == []}
+      id="visits-empty"
+      class="workspace-glass rounded-2xl px-4 py-12 text-center"
+    >
+      <span class="workspace-marker mx-auto mb-4 grid size-12 place-items-center rounded-xl">
+        <.icon name="hero-calendar-days" class="size-6" />
+      </span>
+      <p class="text-sm font-semibold">No hay visitas próximas.</p>
+    </div>
+
+    <section
+      :for={[first | _] = visits <- @days}
+      id={"day-#{NaiveDateTime.to_date(first.starts_at)}"}
+      class="workspace-glass overflow-hidden rounded-2xl"
+    >
+      <h2 class="workspace-divider border-b px-4 py-3 text-sm font-semibold sm:px-6">
+        {day_label(NaiveDateTime.to_date(first.starts_at))}
+      </h2>
+      <ul role="list">
+        <li
+          :for={visit <- visits}
+          id={"visit-#{visit.id}"}
+          class="workspace-divider grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:px-6"
+        >
+          <p class={["tabular-nums text-sm font-semibold", status_class(visit.status)]}>
+            {time(visit)}
+            <span class="workspace-muted block text-xs font-normal">{end_time(visit)}</span>
+          </p>
+          <div class={["min-w-0", status_class(visit.status)]}>
+            <.link navigate={~p"/visitas/#{visit.id}"} class="font-medium hover:underline">
+              {visit.interest.lead.name}
+            </.link>
+            <p class="workspace-muted [overflow-wrap:anywhere] text-sm">
+              {place(visit.interest)}
+            </p>
+          </div>
+          <span class="badge badge-ghost whitespace-nowrap">
+            {Visit.status_label(visit.status)}
+          </span>
+        </li>
+      </ul>
+    </section>
+  </section>
+</Layouts.app>
