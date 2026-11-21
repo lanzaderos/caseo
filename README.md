@@ -103,6 +103,16 @@ Statuses are scheduled, confirmed, done, no-show and cancelled. Rescheduling
 keeps the previous times in the visit's history. When a visit is done, Caseo
 offers to mark the lead as visited.
 
+**Agendar visita** opens a dialog with two options: pick the date yourself (the
+form suggests your free slots), or send the lead a booking link. Mark when you
+hold visits under **Agenda → Disponibilidad**: time ranges on given days, split
+into slots. A range can repeat every week, forever or until a date; leads see
+weekly slots up to four weeks ahead. The booking link is public, works without an account, expires after
+seven days and can be revoked; generating a new one revokes the previous one.
+Copy it, or open WhatsApp with the message ready. The lead picks a free slot,
+which then stops being offered to anyone else, and the visit waits for your
+approval in the agenda.
+
 **Agenda** lists upcoming visits by day and filters them by property. The
 property and lead pages show their upcoming visits. Times are stored as local
 wall-clock time (Spain).

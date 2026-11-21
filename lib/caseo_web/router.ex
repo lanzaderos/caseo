@@ -73,6 +73,7 @@ defmodule CaseoWeb.Router do
       live "/interesados/:id", LeadLive.Show, :show
       live "/visitas", VisitLive.Index, :index
       live "/visitas/nueva", VisitLive.Form, :new
+      live "/visitas/disponibilidad", VisitLive.Availability, :index
       live "/visitas/:id", VisitLive.Form, :edit
 
       live "/users/settings", UserLive.Settings, :edit
@@ -104,6 +105,8 @@ defmodule CaseoWeb.Router do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
+      # Public: the lead books through a revocable link, without an account.
+      live "/reservar/:token", VisitLive.Booking, :show
     end
 
     get "/users/second-factor", SecondFactorController, :challenge
