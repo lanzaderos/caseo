@@ -69,6 +69,36 @@ defmodule Caseo.Properties do
     end
   end
 
+  @doc """
+  Creates a property from a portal listing, or updates the owner's property
+  already imported from the same listing.
+  """
+  @spec import_listing(Scope.t(), map()) ::
+          {:ok, Property.t(), :created | :updated} | {:error, Ecto.Changeset.t()}
+  def import_listing(%Scope{user: %{id: owner_id}} = scope, attrs) do
+    external_id = attrs |> Map.get("listing_url") |> Property.idealista_id()
+
+    existing =
+      external_id &&
+        Repo.get_by(owned_properties(scope),
+          listing_source: "idealista",
+          listing_external_id: external_id
+        )
+
+    case existing do
+      %Property{} = property ->
+        with {:ok, property} <- property |> Property.import_changeset(attrs) |> Repo.update() do
+          {:ok, property, :updated}
+        end
+
+      nil ->
+        with {:ok, property} <-
+               %Property{owner_id: owner_id} |> Property.import_changeset(attrs) |> Repo.insert() do
+          {:ok, property, :created}
+        end
+    end
+  end
+
   @doc "Archives an active property using a single owner-scoped write."
   @spec archive_property(Scope.t(), term()) :: :ok | {:error, :not_found}
   def archive_property(scope, id) do

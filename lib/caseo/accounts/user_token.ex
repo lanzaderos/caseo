@@ -11,6 +11,7 @@ defmodule Caseo.Accounts.UserToken do
   @magic_link_validity_in_minutes 15
   @change_email_validity_in_days 7
   @session_validity_in_days 14
+  @extension_validity_in_days 90
 
   schema "users_tokens" do
     field :token, :binary
@@ -149,6 +150,43 @@ defmodule Caseo.Accounts.UserToken do
         :error
     end
   end
+
+  @doc """
+  Builds a token for the browser extension. Only its hash is stored, so a
+  database leak does not expose usable tokens.
+  """
+  def build_extension_token(user), do: build_hashed_token(user, "extension", nil)
+
+  @doc """
+  Returns the query for the user owning a valid extension token, or `:error`
+  when the token is malformed. Tokens expire after @extension_validity_in_days.
+  """
+  def verify_extension_token_query(token) do
+    with {:ok, hashed_token} <- hash_encoded_token(token) do
+      {:ok,
+       from(token in by_token_and_context_query(hashed_token, "extension"),
+         join: user in assoc(token, :user),
+         where: token.inserted_at > ago(@extension_validity_in_days, "day"),
+         select: user
+       )}
+    end
+  end
+
+  @doc "Returns the query matching an extension token, valid or not."
+  def extension_token_query(token) do
+    with {:ok, hashed_token} <- hash_encoded_token(token) do
+      {:ok, by_token_and_context_query(hashed_token, "extension")}
+    end
+  end
+
+  defp hash_encoded_token(token) when is_binary(token) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} -> {:ok, :crypto.hash(@hash_algorithm, decoded_token)}
+      :error -> :error
+    end
+  end
+
+  defp hash_encoded_token(_token), do: :error
 
   defp by_token_and_context_query(token, context) do
     from UserToken, where: [token: ^token, context: ^context]

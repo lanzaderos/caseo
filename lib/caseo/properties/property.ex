@@ -38,9 +38,68 @@ defmodule Caseo.Properties.Property do
     field :for_students, :boolean, default: false
     field :academic_year, :string
     field :archived_at, :utc_datetime
+    field :listing_source, :string
+    field :listing_external_id, :string
+    field :listing_url, :string
+    field :location, :string
+    field :area_m2, :integer
 
     timestamps(type: :utc_datetime)
   end
+
+  @idealista_url ~r"\Ahttps://www\.idealista\.com/(?:[a-z]{2}/)?inmueble/([0-9]{1,20})/?(?:[?#].*)?\z"
+
+  @doc """
+  Validates a listing imported from a portal. The source and external ID are
+  derived from the URL on the server, never taken from the client.
+  """
+  @spec import_changeset(t(), map()) :: Ecto.Changeset.t()
+  def import_changeset(property, attrs) do
+    property
+    |> cast(attrs, [:name, :listing_url, :location, :area_m2])
+    |> validate_required([:name, :listing_url])
+    |> validate_length(:name, max: 255)
+    |> change_import_rent(attrs)
+    |> validate_length(:listing_url, max: 2048)
+    |> validate_length(:location, max: 255)
+    |> validate_number(:area_m2, greater_than: 0, less_than: 100_000)
+    |> put_listing_identity()
+    |> unique_constraint([:owner_id, :listing_source, :listing_external_id])
+  end
+
+  @doc "Returns the Idealista listing ID in a listing URL, or `nil`."
+  @spec idealista_id(term()) :: String.t() | nil
+  def idealista_id(url) when is_binary(url) do
+    case Regex.run(@idealista_url, url) do
+      [_, id] -> id
+      nil -> nil
+    end
+  end
+
+  def idealista_id(_url), do: nil
+
+  defp put_listing_identity(changeset) do
+    url = get_field(changeset, :listing_url)
+
+    case idealista_id(url) do
+      nil ->
+        add_error(changeset, :listing_url, "debe ser la ficha de un anuncio de Idealista")
+
+      id ->
+        changeset
+        |> put_change(:listing_source, "idealista")
+        |> put_change(:listing_external_id, id)
+        |> put_change(:listing_url, "https://www.idealista.com/inmueble/#{id}/")
+    end
+  end
+
+  defp change_import_rent(%{data: %__MODULE__{mode: :rental} = property} = changeset, attrs) do
+    changeset
+    |> put_change(:rent, formatted_rent(property))
+    |> Offer.change_amount(attrs, :rent, :rent_cents)
+  end
+
+  defp change_import_rent(changeset, _attrs), do: changeset
 
   @doc "Validates the address, listing details and fields specific to the chosen mode."
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
