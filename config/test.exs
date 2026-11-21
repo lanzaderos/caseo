@@ -5,6 +5,11 @@ config :caseo, Oban, testing: :manual
 config :caseo, Caseo.Properties.AddressSearch, plug: {Req.Test, Caseo.Properties.AddressSearch}
 config :caseo, Caseo.Properties.ListingImages, plug: {Req.Test, Caseo.Properties.ListingImages}
 
+config :caseo, Caseo.Whatsapp.Whatsmeow,
+  base_url: "http://whatsmeow.test",
+  token: "test-whatsmeow-token",
+  plug: {Req.Test, Caseo.Whatsapp.Whatsmeow}
+
 config :caseo, :passkeys, origin: "http://localhost:4000", rp_id: "localhost"
 
 # Only in tests, remove the complexity from the password hashing algorithm

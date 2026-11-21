@@ -102,6 +102,18 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# WhatsApp providers by name. Each account stores its provider, so owners can
+# move to another one (e.g. the Cloud API) one at a time.
+config :caseo, Caseo.Whatsapp,
+  providers: %{"whatsmeow" => Caseo.Whatsapp.Whatsmeow},
+  default_provider: "whatsmeow"
+
+# The whatsmeow sidecar (whatsmeow/). Overridden by WHATSMEOW_URL and
+# WHATSMEOW_TOKEN in production.
+config :caseo, Caseo.Whatsapp.Whatsmeow,
+  base_url: "http://localhost:8080",
+  token: "dev-whatsmeow-token"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
