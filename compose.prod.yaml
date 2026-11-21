@@ -1,0 +1,52 @@
+# Despliegue self-hosted de Caseo: core (Phoenix) + db (PostgreSQL) + whatsmeow (sidecar de WhatsApp).
+# Uso: cp .env.example .env && docker compose -f compose.prod.yaml up -d
+# Guía completa: https://caseo-docs.lanzaderos.workers.dev
+
+services:
+  core:
+    image: ghcr.io/lanzaderos/caseo:${CASEO_VERSION:-latest}
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ecto://caseo:${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env}@db/caseo
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?define SECRET_KEY_BASE en .env}
+      PHX_HOST: ${PHX_HOST:?define PHX_HOST en .env}
+      WHATSMEOW_URL: http://whatsmeow:8080
+      WHATSMEOW_TOKEN: ${WHATSMEOW_TOKEN:?define WHATSMEOW_TOKEN en .env}
+    ports:
+      - "${CASEO_BIND:-127.0.0.1}:${CASEO_PORT:-4000}:4000"
+
+  db:
+    image: postgres:18.7-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: caseo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: caseo
+    volumes:
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "caseo", "-d", "caseo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  whatsmeow:
+    image: ghcr.io/lanzaderos/caseo-whatsmeow:${CASEO_VERSION:-latest}
+    build: ./whatsmeow
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # La sesión de WhatsApp se guarda en la misma base de datos (tablas whatsmeow_*),
+      # así una sola copia de seguridad de Postgres cubre todo.
+      DATABASE_URL: postgres://caseo:${POSTGRES_PASSWORD}@db:5432/caseo?sslmode=disable
+      WHATSMEOW_TOKEN: ${WHATSMEOW_TOKEN}
+      WEBHOOK_URL: ${WHATSMEOW_WEBHOOK_URL:-}
+
+volumes:
+  db_data:

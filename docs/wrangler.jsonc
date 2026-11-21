@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "caseo-docs",
+  "compatibility_date": "2026-11-21",
+  // Solo ficheros estáticos generados por `astro build`; sin código de Worker.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

@@ -7,7 +7,9 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+## Self-hosted
+
+Caseo se instala con Docker Compose (`compose.prod.yaml`): `core` (la aplicación), `db` (PostgreSQL) y `whatsmeow` (conector de WhatsApp). Guía de instalación: https://caseo-docs.lanzaderos.workers.dev (fuente en `docs/`, Starlight desplegado en Cloudflare Workers con `npm --prefix docs run deploy`).
 
 ## Asset linting and formatting
 
