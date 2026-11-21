@@ -59,6 +59,8 @@ config :caseo, CaseoWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :caseo, Caseo.Mailer, adapter: Swoosh.Adapters.Local
 
+config :caseo, Oban, repo: Caseo.Repo, queues: [notifications: 5]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.28.2",
