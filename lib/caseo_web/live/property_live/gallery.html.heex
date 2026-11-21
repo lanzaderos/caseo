@@ -78,6 +78,45 @@
       </ul>
     </section>
 
+    <section
+      id="property-leads"
+      class="workspace-glass rounded-2xl p-5 sm:p-8"
+      aria-labelledby="leads-title"
+    >
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="leads-title" class="text-lg font-semibold">Interesados</h2>
+        <.link navigate={~p"/interesados"} class="btn btn-sm btn-ghost">
+          <.icon name="hero-plus" class="size-4" /> Añadir interesado
+        </.link>
+      </div>
+      <p :if={@interest_groups == []} class="workspace-muted text-sm">
+        Todavía no hay interesados.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div :for={{status, label, interests} <- @interest_groups} id={"leads-#{status}"}>
+          <h3 class="workspace-muted mb-1 text-xs font-semibold uppercase tracking-wide">
+            {label} · {length(interests)}
+          </h3>
+          <ul class="space-y-1">
+            <li :for={interest <- interests} id={"property-interest-#{interest.id}"}>
+              <.link
+                navigate={~p"/interesados/#{interest.lead_id}"}
+                class="font-medium hover:underline"
+              >
+                {interest.lead.name}
+              </.link>
+              <span :if={!@room && interest.room} class="workspace-muted text-sm">
+                · {interest.room.name}
+              </span>
+              <span :if={interest.discard_reason} class="workspace-muted block text-sm">
+                {interest.discard_reason}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <section class="workspace-glass rounded-2xl p-5 sm:p-8" aria-labelledby="photo-title">
       <h2 id="photo-title" class="mb-4 text-lg font-semibold">
         {if(@room, do: "Fotos de la habitación", else: "Fotos del inmueble")}

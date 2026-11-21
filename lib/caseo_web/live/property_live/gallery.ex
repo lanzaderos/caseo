@@ -1,6 +1,8 @@
 defmodule CaseoWeb.PropertyLive.Gallery do
   use CaseoWeb, :live_view
 
+  alias Caseo.Leads
+  alias Caseo.Leads.Interest
   alias Caseo.Properties
   alias Caseo.Properties.Offer
   alias Caseo.Properties.Photos
@@ -26,6 +28,7 @@ defmodule CaseoWeb.PropertyLive.Gallery do
       {:noreply,
        socket
        |> assign(property: property, room: room, page_title: (room || property).name)
+       |> assign(interest_groups: interest_groups(socket.assigns.current_scope, property, room))
        |> stream(:rooms, property.rooms, reset: true)
        |> load_photos()}
     else
@@ -94,6 +97,19 @@ defmodule CaseoWeb.PropertyLive.Gallery do
       </p>
     </div>
     """
+  end
+
+  # Interests grouped by status, in pipeline order. A room shows only its own.
+  defp interest_groups(scope, property, room) do
+    interests =
+      scope
+      |> Leads.list_property_interests(property.id)
+      |> Enum.filter(&(is_nil(room) || &1.room_id == room.id))
+      |> Enum.group_by(& &1.status)
+
+    for {label, status} <- Interest.status_options(), Map.has_key?(interests, status) do
+      {status, label, interests[status]}
+    end
   end
 
   defp gallery_room(%Property{mode: :rooms, rooms: rooms}, %{"room_id" => id}) do

@@ -27,7 +27,11 @@ defmodule CaseoWeb.PropertyLive.Index do
   end
 
   defp load_properties(socket) do
-    properties = Properties.list_properties(socket.assigns.current_scope, socket.assigns.status)
-    stream(socket, :properties, properties, reset: true)
+    scope = socket.assigns.current_scope
+    properties = Properties.list_properties(scope, socket.assigns.status)
+
+    socket
+    |> assign(lead_counts: Caseo.Leads.count_by_property(scope))
+    |> stream(:properties, properties, reset: true)
   end
 end

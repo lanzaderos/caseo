@@ -1,0 +1,137 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:leads}>
+  <section lang="es" class="space-y-6">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <.link navigate={~p"/interesados"} class="workspace-muted text-sm hover:underline">
+          <.icon name="hero-arrow-left" class="size-4" /> Interesados
+        </.link>
+        <h1 id="lead-title" class="workspace-title mt-2">{@lead.name}</h1>
+        <p class="workspace-muted text-sm tabular-nums">
+          {@lead.phone} · {Lead.source_label(@lead.source)}
+        </p>
+      </div>
+      <button
+        id="delete-lead"
+        type="button"
+        phx-click="delete"
+        data-confirm="¿Eliminar este interesado y sus vínculos con inmuebles?"
+        class="btn btn-ghost text-error min-h-11 rounded-xl"
+      >
+        <.icon name="hero-trash" class="size-4" /> Eliminar
+      </button>
+    </header>
+
+    <section class="workspace-glass rounded-2xl p-5 sm:p-8" aria-labelledby="interests-title">
+      <h2 id="interests-title" class="mb-4 text-lg font-semibold">Inmuebles</h2>
+
+      <ul id="lead-interests" phx-update="stream" class="space-y-3">
+        <li id="lead-interests-empty" class="workspace-muted hidden text-sm only:block">
+          Todavía no está vinculado a ningún inmueble.
+        </li>
+        <li
+          :for={{id, item} <- @streams.interests}
+          id={id}
+          class="workspace-divider rounded-xl border p-4"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <.link
+              navigate={~p"/inmuebles/#{item.interest.property_id}"}
+              class="font-semibold hover:underline"
+            >
+              {place(item.interest)}
+            </.link>
+            <button
+              id={"unlink-#{item.id}"}
+              type="button"
+              phx-click="unlink"
+              phx-value-id={item.id}
+              data-confirm="¿Desvincular este inmueble?"
+              class="btn btn-sm btn-ghost workspace-muted"
+            >
+              Desvincular
+            </button>
+          </div>
+          <.form
+            for={item.form}
+            id={"interest-form-#{item.id}"}
+            phx-change="validate_interest"
+            phx-submit="save_interest"
+            class="mt-2 grid items-end gap-x-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto]"
+          >
+            <input type="hidden" name="interest_id" value={item.id} />
+            <.input
+              field={item.form[:status]}
+              type="select"
+              label="Estado"
+              options={Interest.status_options()}
+            />
+            <div>
+              <.input
+                :if={item.form[:status].value in [:discarded, "discarded"]}
+                field={item.form[:discard_reason]}
+                label="Motivo del descarte"
+              />
+            </div>
+            <div class="mb-2">
+              <button type="submit" class="btn workspace-primary min-h-10 rounded-lg">
+                Guardar
+              </button>
+            </div>
+          </.form>
+        </li>
+      </ul>
+
+      <.form
+        :if={@target_options != []}
+        for={@link_form}
+        id="link-form"
+        phx-submit="link"
+        class="mt-5 flex flex-wrap items-end gap-3"
+      >
+        <div class="min-w-56 flex-1">
+          <.input
+            field={@link_form[:target]}
+            type="select"
+            label="Vincular a un inmueble o habitación"
+            prompt="Elige un inmueble"
+            options={@target_options}
+          />
+        </div>
+        <div class="mb-2">
+          <button type="submit" class="btn btn-ghost workspace-glass min-h-10 rounded-lg">
+            <.icon name="hero-link" class="size-4" /> Vincular
+          </button>
+        </div>
+      </.form>
+    </section>
+
+    <div class="workspace-glass rounded-2xl p-5 sm:p-8">
+      <h2 class="mb-4 text-lg font-semibold">Datos de contacto</h2>
+      <.form
+        for={@form}
+        id="lead-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="grid gap-x-4 sm:grid-cols-2"
+      >
+        <.input field={@form[:name]} label="Nombre" required />
+        <.input field={@form[:phone]} type="tel" label="Teléfono" required />
+        <.input field={@form[:email]} type="email" label="Email (opcional)" />
+        <.input
+          field={@form[:source]}
+          type="select"
+          label="Origen"
+          options={Lead.source_options()}
+        />
+        <div class="sm:col-span-2">
+          <.input field={@form[:notes]} type="textarea" label="Notas" />
+        </div>
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn workspace-primary min-h-11 rounded-xl px-4">
+            Guardar cambios
+          </button>
+        </div>
+      </.form>
+    </div>
+  </section>
+</Layouts.app>

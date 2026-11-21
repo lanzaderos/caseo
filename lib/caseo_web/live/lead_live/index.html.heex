@@ -1,0 +1,79 @@
+<Layouts.app flash={@flash} current_scope={@current_scope} section={:leads}>
+  <section lang="es" class="space-y-6">
+    <header>
+      <h1 class="workspace-title">Interesados</h1>
+      <p class="workspace-muted mt-1 text-sm">
+        Quién está interesado en cada inmueble y en qué punto está.
+      </p>
+    </header>
+
+    <div class="workspace-glass rounded-2xl p-5 sm:p-8">
+      <h2 class="mb-4 text-lg font-semibold">Nuevo interesado</h2>
+      <.form
+        for={@form}
+        id="lead-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="grid gap-x-4 sm:grid-cols-2"
+      >
+        <.input field={@form[:name]} label="Nombre" required />
+        <.input
+          field={@form[:phone]}
+          type="tel"
+          label="Teléfono"
+          placeholder="612 345 678"
+          required
+        />
+        <.input field={@form[:email]} type="email" label="Email (opcional)" />
+        <.input
+          field={@form[:source]}
+          type="select"
+          label="Origen"
+          options={Lead.source_options()}
+        />
+        <div class="sm:col-span-2">
+          <.input field={@form[:notes]} type="textarea" label="Notas" />
+        </div>
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn workspace-primary min-h-11 rounded-xl px-4">
+            <.icon name="hero-plus" class="size-4" /> Crear interesado
+          </button>
+        </div>
+      </.form>
+    </div>
+
+    <div class="workspace-glass overflow-hidden rounded-2xl">
+      <ul id="leads" phx-update="stream" role="list">
+        <li id="leads-empty" class="hidden px-4 py-12 text-center only:block sm:px-6">
+          <span class="workspace-marker mx-auto mb-4 grid size-12 place-items-center rounded-xl">
+            <.icon name="hero-user-group" class="size-6" />
+          </span>
+          <p class="text-sm font-semibold">Todavía no hay interesados.</p>
+        </li>
+        <li
+          :for={{id, lead} <- @streams.leads}
+          id={id}
+          class="workspace-divider flex items-center gap-3 border-b px-4 py-4 last:border-b-0 sm:px-6"
+        >
+          <span class="workspace-marker grid size-10 shrink-0 place-items-center rounded-xl">
+            <.icon name="hero-user" class="size-5" />
+          </span>
+          <div class="min-w-0">
+            <.link
+              navigate={~p"/interesados/#{lead.id}"}
+              class="[overflow-wrap:anywhere] font-semibold hover:underline"
+            >
+              {lead.name}
+            </.link>
+            <p class="workspace-muted text-sm tabular-nums">
+              {lead.phone} · {Lead.source_label(lead.source)}
+            </p>
+            <p :if={lead.interests != []} class="workspace-muted text-sm">
+              {interest_summary(lead.interests)}
+            </p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+</Layouts.app>

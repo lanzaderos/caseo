@@ -61,6 +61,19 @@ passkeys, typically the same host as `PHX_HOST`. The allowed origin is
 `https://` followed by `PHX_HOST`. Production passkeys are enabled when
 `PASSKEY_RP_ID` is set. Changing the RP ID requires users to enroll again.
 
+## Leads
+
+Track people interested in your properties under **Interesados**. A lead has a
+name, a phone number, an optional email, a source (Idealista, Fotocasa,
+Pisos.com, Milanuncios, WhatsApp or other) and notes. Phone numbers are stored
+in E.164; nine-digit numbers without a prefix are taken as Spanish. A phone
+number is unique within an account.
+
+Link a lead to any number of properties or rooms. Each link has its own status:
+new, contacted, visit scheduled, visited, offer, closed, or discarded with a
+reason. The property page groups its leads by status, and the property list
+shows how many leads are still in play. Deleting a lead removes its links.
+
 ## Licencia
 
 Caseo se distribuye bajo la [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Si modificas Caseo y lo ofreces como servicio a otras personas, debes publicar el código fuente de tus cambios bajo la misma licencia.

@@ -67,6 +67,13 @@
               <div class="flex flex-wrap gap-x-2 text-sm workspace-muted">
                 <span :if={property.rental_term == :temporary}>Temporal</span>
                 <span :if={property.for_students}>Para estudiantes</span>
+                <span id={"lead-count-#{property.id}"}>
+                  {ngettext(
+                    "1 interesado",
+                    "%{count} interesados",
+                    Map.get(@lead_counts, property.id, 0)
+                  )}
+                </span>
               </div>
             </div>
           </div>
