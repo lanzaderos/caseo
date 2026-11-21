@@ -17,6 +17,16 @@ defmodule CaseoWeb.UserLive.Settings do
       </div>
 
       <.link
+        :if={Accounts.Passkeys.enabled?()}
+        id="passkey-settings"
+        href={~p"/users/settings/passkeys"}
+        class="btn btn-ghost landing-glass-panel"
+      >
+        <.icon name="hero-key" class="size-5" /> Passkeys
+        <.icon name="hero-arrow-right" class="size-4" />
+      </.link>
+
+      <.link
         id="second-factor-settings"
         href={~p"/users/settings/second-factor"}
         class="btn btn-ghost landing-glass-panel"

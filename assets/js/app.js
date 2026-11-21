@@ -24,13 +24,22 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import * as colocated from "phoenix-colocated/caseo";
 import topbar from "../vendor/topbar";
+import { enablePasskeyForm } from "./passkeys";
 
 const { hooks: colocatedHooks } = colocated;
+const Passkey = {
+  mounted() {
+    enablePasskeyForm(this.el);
+  },
+};
+
+const registrationForm = document.querySelector("#add-passkey");
+if (registrationForm) enablePasskeyForm(registrationForm);
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks },
+  hooks: { ...colocatedHooks, Passkey },
 });
 
 // Show progress bar on live navigation and form submits

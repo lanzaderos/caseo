@@ -40,10 +40,21 @@ and enroll a new authenticator if needed. If both the authenticator and all
 recovery codes are lost, email alone cannot restore access.
 
 A passkey satisfies the second factor only when the server verifies the
-WebAuthn assertion and its user-verification flag. Passkey registration and
-sign-in are tracked separately in [issue #4](https://github.com/lanzaderos/caseo/issues/4).
+WebAuthn assertion and its user-verification flag.
 
 The endpoint's `SECRET_KEY_BASE` protects stored TOTP secrets, so deployments
 sharing a database must share that key. Replacing it without migrating the
 encrypted secrets requires affected users to sign in with a recovery code and
 enroll TOTP again.
+
+
+## Passkeys
+
+Sign in recently to add, rename or revoke a passkey under **Settings → Passkeys**.
+Once enrolled, choose **Sign in with a passkey** on the login page.
+
+For local development, use `http://localhost:4000`. In production, run the
+database migrations and set `PASSKEY_RP_ID` to the stable domain used for
+passkeys, typically the same host as `PHX_HOST`. The allowed origin is
+`https://` followed by `PHX_HOST`. Production passkeys are enabled when
+`PASSKEY_RP_ID` is set. Changing the RP ID requires users to enroll again.

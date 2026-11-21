@@ -36,6 +36,22 @@ defmodule CaseoWeb.UserLive.Login do
         </div>
 
         <.form
+          :if={Accounts.Passkeys.enabled?()}
+          for={to_form(%{})}
+          id="login-with-passkey"
+          action={~p"/users/log-in/passkey"}
+          data-passkey="authenticate"
+          data-options={~p"/users/log-in/passkey/options"}
+          phx-hook="Passkey"
+          phx-update="ignore"
+        >
+          <.button disabled data-passkey-submit class="btn btn-neutral w-full">
+            Sign in with a passkey
+          </.button>
+          <p data-passkey-status class="mt-2 text-sm text-error" role="status"></p>
+        </.form>
+
+        <.form
           :let={f}
           for={@form}
           id="login_form_magic"

@@ -3,6 +3,7 @@ defmodule Caseo.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
+    field :passkey_handle, Ecto.UUID, read_after_writes: true
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -17,6 +18,8 @@ defmodule Caseo.Accounts.User do
 
     timestamps(type: :utc_datetime)
   end
+
+  @type t :: %__MODULE__{}
 
   @doc """
   A user changeset for registering or changing the email.
