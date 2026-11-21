@@ -60,3 +60,7 @@ database migrations and set `PASSKEY_RP_ID` to the stable domain used for
 passkeys, typically the same host as `PHX_HOST`. The allowed origin is
 `https://` followed by `PHX_HOST`. Production passkeys are enabled when
 `PASSKEY_RP_ID` is set. Changing the RP ID requires users to enroll again.
+
+## Licencia
+
+Caseo se distribuye bajo la [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). Si modificas Caseo y lo ofreces como servicio a otras personas, debes publicar el código fuente de tus cambios bajo la misma licencia.
